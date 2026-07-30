@@ -109,20 +109,29 @@ const latest = books[0];
 const latestIndexLabel = String(books.length).padStart(2, '0');
 const latestDateParts = latest?.date ? latest.date.split('-') : ['2026', '07', '29'];
 const tones = ['orange', 'blue', 'green'];
-const bookByDay = new Map(monthBooks.map(book => [Number(book.date.slice(8)), books.indexOf(book)]));
+const booksByDay = new Map();
+monthBooks.forEach(book => {
+  const day = Number(book.date.slice(8));
+  const entries = booksByDay.get(day) || [];
+  entries.push(books.indexOf(book));
+  booksByDay.set(day, entries);
+});
 const activeYear = Number(activeMonth.slice(0, 4)) || 2026;
 const activeMonthNumber = Number(activeMonth.slice(5)) || 7;
 const firstDay = activeMonth ? new Date(activeYear, activeMonthNumber - 1, 1).getDay() : 3;
 const calendarOffset = (firstDay + 6) % 7;
 const daysInMonth = activeMonth ? new Date(activeYear, activeMonthNumber, 0).getDate() : 31;
+const now = new Date();
+const currentDay = now.getFullYear() === activeYear && now.getMonth() + 1 === activeMonthNumber ? now.getDate() : -1;
 const calendarCells = Array.from({ length: calendarOffset + daysInMonth }, (_, index) => {
   const day = index - calendarOffset + 1;
   if (day < 1) return '<span class="calendar-day empty-day"></span>';
-  const bookIndex = bookByDay.get(day);
+  const dayBooks = booksByDay.get(day) || [];
+  const bookIndex = dayBooks[0];
   const isLatest = latest?.date && Number(latest.date.slice(8)) === day;
-  const className = ['calendar-day', bookIndex !== undefined ? 'has-book' : '', isLatest ? 'is-today' : ''].filter(Boolean).join(' ');
+  const className = ['calendar-day', bookIndex !== undefined ? 'has-book' : '', isLatest ? 'is-today' : '', day === currentDay ? 'is-current-day' : ''].filter(Boolean).join(' ');
   const attrs = bookIndex !== undefined ? ` type="button" data-open-index="${bookIndex}"` : ' type="button" disabled';
-  return `<button class="${className}"${attrs}><span>${day}</span>${bookIndex !== undefined ? '<i></i>' : ''}</button>`;
+  return `<button class="${className}"${attrs}><span>${day}</span>${bookIndex !== undefined ? '<i></i>' : ''}${dayBooks.length > 1 ? `<em>${dayBooks.length}</em>` : ''}</button>`;
 }).join('');
 const featureCard = latest ? `
   <section id="today-panel" class="panel active-panel">
@@ -131,13 +140,15 @@ const featureCard = latest ? `
       <div class="feature-copy">
         <h2>${escapeHtml(displayTitle(latest))}</h2>
         <p class="feature-author">${escapeHtml(latest.author || '')}</p>
+        <p class="feature-category">${escapeHtml(latest.category || '')}</p>
         <span class="short-line"></span>
       </div>
       <span class="blue-shape" aria-hidden="true"></span>
     </article>
-    <button class="primary-cta open-reader" type="button" data-open-index="0"><span>开始阅读</span><span class="icon" aria-hidden="true">→</span></button>
-    <section class="quote-box" aria-label="金句回顾">
-      <div class="quote-meta"><span>金句回顾 · 已收录 ${quoteCount} 句</span><button id="refresh-quote" class="refresh-quote" type="button">换一句 <span aria-hidden="true">↻</span></button></div>
+    <button class="primary-cta open-reader" type="button" data-open-index="0"><span class="cta-action">开始阅读</span><span class="cta-takeaway">${escapeHtml(latest.review || '')}</span><span class="icon" aria-hidden="true">→</span></button>
+    <section class="quote-box" aria-label="金句回顾" data-count="${quoteCount}">
+      <div class="quote-count"><b>${quoteCount}</b><span>已收录</span></div>
+      <div class="quote-meta"><span>金句回顾<span class="quote-meta-count"> · 已收录 ${quoteCount} 句</span></span><button id="refresh-quote" class="refresh-quote" type="button">换一句 <span aria-hidden="true">↻</span></button></div>
       <div id="quote-text" class="quote-text"></div>
       <div id="quote-source" class="quote-source"></div>
     </section>
@@ -149,8 +160,9 @@ const featureCard = latest ? `
   </section>` : '<section id="today-panel" class="panel active-panel empty-state">还没有读书记录。</section>';
 const calendarPanel = `
   <section id="calendar-panel" class="panel" hidden>
+    <header class="calendar-intro"><h2>书单日历</h2><p>把每天读过的书，留在时间里。</p></header>
     <section class="calendar-card" aria-label="书单日历">
-      <div class="calendar-head"><h2>${monthLabel || '书单日历'}</h2><div><span class="dot orange-dot"></span>完成 <span class="dot blue-dot"></span>计划</div></div>
+      <div class="calendar-head"><h2>${activeMonth ? activeMonth.replace('-', ' · ') : '书单日历'}</h2><div>${monthBooks.length} 本精读 / ${monthCategories.length} 种视角</div></div>
       <div class="week-row"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
       <div class="calendar-grid">${calendarCells}</div>
     </section>
@@ -160,9 +172,8 @@ const calendarPanel = `
       <div class="spine-line" aria-hidden="true"></div>
 `;
 const cards = books.map((book, index) => `
-  <button id="${bookDomId(book, index)}" class="book-card open-reader tone-${tones[index % tones.length]}" type="button" data-open-index="${index}" aria-label="阅读${escapeHtml(book.title)}${book.author ? '，作者' + escapeHtml(book.author) : ''}，类型${escapeHtml(book.category)}">
+  <button id="${bookDomId(book, index)}" class="book-card open-reader tone-${tones[index % tones.length]}" type="button" data-open-index="${index}" data-date="${escapeHtml(book.date.slice(5).replace('-', '.'))}" aria-label="阅读${escapeHtml(book.title)}${book.author ? '，作者' + escapeHtml(book.author) : ''}，类型${escapeHtml(book.category)}">
     <span class="book-number">${String(index + 1).padStart(2, '0')}</span>
-    <span class="book-thumb"><b>${escapeHtml(book.topic.slice(0, 4))}</b></span>
     <span class="book-title-row"><span class="book-title">${escapeHtml(displayTitle(book))}</span><span class="book-category">${escapeHtml(book.category)}</span></span>
     <span class="icon" aria-hidden="true">→</span>
   </button>`).join('');
@@ -184,11 +195,21 @@ fs.writeFileSync(output, `<!doctype html>
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>buku · 读到这里</title>
+  <script>
+    try {
+      if (localStorage.getItem('buku-reading-archive.theme.v1') === 'paper-rust') {
+        document.documentElement.dataset.theme = 'paper-rust';
+      }
+    } catch (error) {}
+  </script>
   <style>
     :root{--cream:#F9F8E1;--blue:#62A3FF;--orange:#FFA300;--green:#ABDF1A;--ink:#111111;--display:"STSongti-SC-Black","Songti SC","Noto Serif CJK SC","SimSun",serif;--serif:"Songti SC","STSongti-SC-Regular","Noto Serif CJK SC","SimSun",serif;--sans:"Avenir Next","Avenir","PingFang SC","Hiragino Sans GB",ui-sans-serif,system-ui,sans-serif;--num:"DIN Alternate","Avenir Next Condensed","Avenir Next",ui-sans-serif,system-ui,sans-serif;--line:color-mix(in srgb,var(--ink) 10%,transparent);--shadow:0 18px 44px color-mix(in srgb,var(--ink) 10%,transparent)}
     *{box-sizing:border-box} [hidden]{display:none!important}
     body{margin:0;overflow-x:hidden;background:var(--cream);color:var(--ink);font-family:var(--serif);text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
     button,input{font:inherit;color:inherit} button{cursor:pointer}
+    .brand-row{position:relative;z-index:20;display:flex;align-items:center;justify-content:space-between}.theme-toggle{min-width:58px;min-height:38px;border:1px solid color-mix(in srgb,var(--ink) 22%,transparent);border-radius:99px;background:color-mix(in srgb,var(--cream) 82%,transparent);padding:8px 12px;font:900 12px var(--sans);letter-spacing:.06em}.theme-toggle[aria-expanded="true"]{background:var(--ink);color:var(--cream)}.theme-menu{position:absolute;z-index:40;top:46px;right:0;width:216px;padding:12px;background:var(--cream);border:1px solid color-mix(in srgb,var(--ink) 20%,transparent);border-radius:10px;box-shadow:0 16px 36px color-mix(in srgb,var(--ink) 16%,transparent)}.theme-menu-title{margin:0 0 8px;padding:0 5px;font:900 12px var(--sans);letter-spacing:.08em}.theme-option{display:grid;grid-template-columns:1fr auto;align-items:center;width:100%;min-height:48px;border:0;border-left:4px solid transparent;background:transparent;padding:8px 10px;text-align:left;font:800 14px var(--sans)}.theme-option+.theme-option{border-top:1px solid var(--line)}.theme-option[data-theme-value="dopamine"]{border-left-color:#ABDF1A}.theme-option[data-theme-value="paper-rust"]{border-left-color:#BE411C}.theme-option[aria-pressed="true"]{background:color-mix(in srgb,var(--ink) 6%,transparent)}.theme-status{visibility:hidden;color:color-mix(in srgb,var(--ink) 58%,transparent);font-size:11px}.theme-option[aria-pressed="true"] .theme-status{visibility:visible}
+    .feature-category,.quote-count,.calendar-intro,.cta-takeaway{display:none}.calendar-day em{position:absolute;right:3px;top:2px;color:var(--orange);font:900 10px var(--sans);font-style:normal}
+    .tab:focus{outline:none}.tab:focus-visible{box-shadow:inset 0 -3px 0 currentColor}
     .app-shell{position:relative;width:min(430px,100%);min-height:100vh;margin:auto;background:var(--cream);overflow:hidden}
     .hero{position:relative;overflow:hidden;min-height:326px;padding:34px 24px 76px;background:var(--cream)}
     .hero:before{content:"";position:absolute;z-index:0;left:-86px;top:-42px;width:410px;height:332px;background:var(--green);border-bottom-right-radius:170px 118px}
@@ -248,11 +269,229 @@ fs.writeFileSync(output, `<!doctype html>
     .primary-cta{min-height:52px;margin:12px 0 14px;font-size:18px}.primary-cta:before{font-size:23px}.primary-cta .icon{font-size:23px}.quote-box{padding:17px 16px}.quote-box:before{top:62px;font-size:26px}.quote-text{font-size:16px;line-height:1.52}.quote-source{font-size:12px}.monthly-reflection{padding:14px}.month-heading strong{font-size:18px}.month-takeaway blockquote{font-size:14px}
     .calendar-head h2{font-size:21px}.calendar-day{font-size:16px;min-height:32px}.book-card{min-height:56px;grid-template-columns:58px 58px minmax(0,1fr) 26px}.book-title{font-size:15px}.book-number{font-size:18px}.book-thumb{height:44px;font-size:11px}.book-category{font-size:10px}
     .reader-hero{flex-basis:250px;padding:22px 20px 18px}.reader-hero:before{width:350px;height:264px;border-bottom-right-radius:146px 84px}.reader-brand{margin-bottom:24px}.reader-top{margin-bottom:24px}.reader-top:after{display:none}.reader-kicker{display:none!important}.reader-title{max-width:318px;font-size:24px;line-height:1.2}.reader-title:after{width:112px;margin-top:7px}.reader-bookline{margin-top:10px;font-size:13px}.reader-hero:after{width:96px;height:70px}.page-count b{font-size:22px}.reader-body{padding:14px 14px 14px}.progress-line{grid-template-columns:auto auto 1fr;font-size:12px;margin-bottom:12px}.progress-line b{font-size:20px}.content-card{padding:18px 17px;border-radius:14px}.reader-page-content{font-size:16px;line-height:1.72}.reader-page-content h3{font-size:17px}.reader-page-content p{margin-bottom:15px}.judgement{font-size:15px;line-height:1.6}.reader-bottom button{min-height:54px}.reader-bottom button:last-child{font-size:16px}
+
+    html:not([data-theme="paper-rust"]) .hero{min-height:150px;padding:18px 16px 30px}
+    html:not([data-theme="paper-rust"]) .hero:before{left:-72px;top:-50px;width:288px;height:188px;border-bottom-right-radius:122px 74px}
+    html:not([data-theme="paper-rust"]) .hero:after{right:-78px;top:-74px;width:180px;height:122px}
+    html:not([data-theme="paper-rust"]) .brand{font-size:12px}
+    html:not([data-theme="paper-rust"]) .brand:after,html:not([data-theme="paper-rust"]) .hero p:after{display:none}
+    html:not([data-theme="paper-rust"]) .hero h1{margin-top:18px;font-size:30px;line-height:1.05}
+    html:not([data-theme="paper-rust"]) .hero h1:before{right:-118px;top:62px;width:58px;height:58px}
+    html:not([data-theme="paper-rust"]) .hero p{max-width:250px;margin-top:7px;font-size:12px;line-height:1.42}
+    html:not([data-theme="paper-rust"]) .hero p:before{left:-64px;width:44px;height:72px}
+    html:not([data-theme="paper-rust"]) .title-line{width:98px;height:2px}
+    html:not([data-theme="paper-rust"]) .tabs{height:42px;margin:-22px 16px 10px;padding:0 8px}
+    html:not([data-theme="paper-rust"]) .tab{padding:10px 4px 8px;font-size:14px}
+    html:not([data-theme="paper-rust"]) .tab.active:after{left:24px;right:24px;bottom:5px;height:2px}
+    html:not([data-theme="paper-rust"]) .panel{padding:0 16px 16px}
+    html:not([data-theme="paper-rust"]) .feature-card{grid-template-columns:58px minmax(0,1fr);min-height:128px}
+    html:not([data-theme="paper-rust"]) .feature-card:before{display:none}
+    html:not([data-theme="paper-rust"]) .date-rail{gap:5px}
+    html:not([data-theme="paper-rust"]) .date-rail span{font-size:10px}
+    html:not([data-theme="paper-rust"]) .date-rail b{font-size:14px}
+    html:not([data-theme="paper-rust"]) .date-rail b:before,html:not([data-theme="paper-rust"]) .date-rail span:after{width:10px;height:1px;margin-top:5px}
+    html:not([data-theme="paper-rust"]) .date-rail small{margin-top:4px;font-size:9px}
+    html:not([data-theme="paper-rust"]) .feature-copy{padding:16px 20px 14px 10px}
+    html:not([data-theme="paper-rust"]) .feature-copy h2{font-size:18px;line-height:1.22}
+    html:not([data-theme="paper-rust"]) .feature-author{margin-top:8px;font-size:12px}
+    html:not([data-theme="paper-rust"]) .short-line{width:34px;height:2px;margin-top:8px}
+    html:not([data-theme="paper-rust"]) .blue-shape{right:-60px;width:88px;height:108px}
+    html:not([data-theme="paper-rust"]) .primary-cta{min-height:42px;margin:10px 0 10px;padding:8px 16px;border-radius:8px;font-size:16px}
+    html:not([data-theme="paper-rust"]) .primary-cta:before{font-size:20px}
+    html:not([data-theme="paper-rust"]) .primary-cta .icon{font-size:20px}
+    html:not([data-theme="paper-rust"]) .quote-box{min-height:104px;margin-top:0;padding:14px 14px}
+    html:not([data-theme="paper-rust"]) .quote-box:before{display:none}
+    html:not([data-theme="paper-rust"]) .quote-meta{font-size:10px}
+    html:not([data-theme="paper-rust"]) .refresh-quote{padding:4px 8px;font-size:10px}
+    html:not([data-theme="paper-rust"]) .quote-text{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:12px 4px 8px 0;font-size:15px;line-height:1.42}
+    html:not([data-theme="paper-rust"]) .quote-text:after{display:none}
+    html:not([data-theme="paper-rust"]) .quote-source{font-size:11px}
+    html:not([data-theme="paper-rust"]) .monthly-reflection{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;min-height:108px;margin-top:10px;padding:13px 14px}
+    html:not([data-theme="paper-rust"]) .month-heading span{font-size:9px;margin-bottom:4px}
+    html:not([data-theme="paper-rust"]) .month-heading strong{font-size:16px}
+    html:not([data-theme="paper-rust"]) .month-stats{grid-column:2;grid-row:1 / 3;flex-direction:column;align-items:flex-end;gap:5px;margin:0}
+    html:not([data-theme="paper-rust"]) .month-stats b{font-size:20px}
+    html:not([data-theme="paper-rust"]) .month-stats span{font-size:10px}
+    html:not([data-theme="paper-rust"]) .month-takeaway{grid-column:1;min-width:0}
+    html:not([data-theme="paper-rust"]) .month-label{font-size:9px;margin-bottom:4px}
+    html:not([data-theme="paper-rust"]) .month-takeaway blockquote{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0;font-size:13px;line-height:1.42}
+    html:not([data-theme="paper-rust"]) .month-takeaway small{display:none}
+    html:not([data-theme="paper-rust"]) .book-card{grid-template-columns:50px minmax(0,1fr) 24px;min-height:52px;gap:10px;padding-right:10px}
+    html:not([data-theme="paper-rust"]) .book-thumb{display:none}
+    html:not([data-theme="paper-rust"]) .book-number{font-size:17px}
+    html:not([data-theme="paper-rust"]) .book-title{font-size:15px}
+    html:not([data-theme="paper-rust"]) .book-category{font-size:10px}
+    html:not([data-theme="paper-rust"]) .reader-hero{flex-basis:172px;padding:16px 16px 10px}
+    html:not([data-theme="paper-rust"]) .reader-hero:before{left:-70px;top:-72px;width:304px;height:204px;border-bottom-right-radius:120px 68px}
+    html:not([data-theme="paper-rust"]) .reader-hero:after{right:-42px;bottom:-8px;width:82px;height:58px}
+    html:not([data-theme="paper-rust"]) .reader-brand{font-size:12px;margin-bottom:18px}
+    html:not([data-theme="paper-rust"]) .reader-top{margin-bottom:13px}
+    html:not([data-theme="paper-rust"]) .close{font-size:15px}
+    html:not([data-theme="paper-rust"]) .close .icon{font-size:21px}
+    html:not([data-theme="paper-rust"]) .page-count{font-size:13px}
+    html:not([data-theme="paper-rust"]) .page-count:before{right:-46px;top:-58px;width:128px;height:88px}
+    html:not([data-theme="paper-rust"]) .page-count b{font-size:20px}
+    html:not([data-theme="paper-rust"]) .reader-title{max-width:280px;font-size:20px;line-height:1.18}
+    html:not([data-theme="paper-rust"]) .reader-title:after{width:86px;height:2px;margin-top:5px}
+    html:not([data-theme="paper-rust"]) .reader-bookline{margin-top:7px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    html:not([data-theme="paper-rust"]) .reader-body{padding-top:10px}
+
+    .brand-row .brand:after{right:-236px}
+
+    html[data-theme="paper-rust"]{--cream:#F8F3EF;--blue:#BE411C;--orange:#BE411C;--green:#BE411C;--ink:#2E3030;--muted:#70777A;--line:#D9CEC4;--shadow:none;--display:"Songti SC","STSongti-SC-Regular","Noto Serif CJK SC","SimSun",serif;--serif:"Songti SC","STSongti-SC-Regular","Noto Serif CJK SC","SimSun",serif}
+    html[data-theme="paper-rust"] body{background:var(--cream);color:var(--ink)}
+    html[data-theme="paper-rust"] .app-shell,html[data-theme="paper-rust"] .reader-shell{background:var(--cream)}
+    html[data-theme="paper-rust"] .hero:before,html[data-theme="paper-rust"] .hero:after,html[data-theme="paper-rust"] .hero h1:before,html[data-theme="paper-rust"] .hero p:before,html[data-theme="paper-rust"] .hero p:after,html[data-theme="paper-rust"] .brand:after,html[data-theme="paper-rust"] .reader-hero:before,html[data-theme="paper-rust"] .reader-hero:after,html[data-theme="paper-rust"] .reader-top:after,html[data-theme="paper-rust"] .page-count:before{display:none}
+    html[data-theme="paper-rust"] .hero{min-height:0;padding:35px 34px 23px;overflow:visible;border-bottom:1px solid var(--line);background:transparent}
+    html[data-theme="paper-rust"] .brand{color:var(--orange);font-size:14px;letter-spacing:.25em}
+    html[data-theme="paper-rust"] .theme-toggle{min-width:58px;min-height:38px;color:var(--orange);border:0;border-bottom:1px solid var(--orange);border-radius:0;background:transparent;padding:8px 2px;font-family:var(--serif);font-size:13px;font-weight:400}
+    html[data-theme="paper-rust"] .theme-toggle[aria-expanded="true"]{color:var(--cream);border-color:var(--orange);background:var(--orange)}
+    html[data-theme="paper-rust"] .theme-menu{top:43px;border-color:var(--line);border-radius:0;background:var(--cream);box-shadow:none}
+    html[data-theme="paper-rust"] .hero h1{margin:23px 0 11px;font-size:42px;line-height:1.15;font-weight:500;letter-spacing:.04em}
+    html[data-theme="paper-rust"] .hero p{max-width:none;margin:0;color:var(--muted);font-size:15px;line-height:1.8;font-weight:400}
+    html[data-theme="paper-rust"] .title-line{display:none}
+    html[data-theme="paper-rust"] .tabs,html[data-theme="paper-rust"] .app-shell.calendar-mode .tabs{grid-template-columns:110px 110px;justify-content:start;height:52px;margin:0 34px 27px;padding:0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;box-shadow:none}
+    html[data-theme="paper-rust"] .tab,html[data-theme="paper-rust"] .app-shell.calendar-mode .tab{padding:14px 8px;color:var(--muted);font-size:17px;font-weight:400}
+    html[data-theme="paper-rust"] .tab.active{color:var(--orange)}
+    html[data-theme="paper-rust"] .tab.active:after,html[data-theme="paper-rust"] .app-shell.calendar-mode .tab.active:after{left:0;right:0;bottom:-1px;height:2px;border-radius:0;background:var(--orange);transform:none}
+    html[data-theme="paper-rust"] .panel{padding-right:34px;padding-left:34px}
+
+    html[data-theme="paper-rust"] .feature-card{grid-template-columns:82px minmax(0,1fr);min-height:280px;border:1px solid var(--line);border-radius:0;background:transparent;box-shadow:none}
+    html[data-theme="paper-rust"] .feature-card:before{left:7px;top:7px;width:24px;height:24px;border-top:1.5px solid var(--orange);border-left:1.5px solid var(--orange);border-radius:0;background:none}
+    html[data-theme="paper-rust"] .date-rail{margin:26px 0 68px;color:var(--ink);border-right:1px dashed var(--line);background:transparent;font-weight:500}
+    html[data-theme="paper-rust"] .date-rail small{color:var(--orange)}
+    html[data-theme="paper-rust"] .date-rail b:before,html[data-theme="paper-rust"] .date-rail span:after{background:var(--line)}
+    html[data-theme="paper-rust"] .feature-copy{padding:30px 27px 88px;text-align:left}
+    html[data-theme="paper-rust"] .section-kicker{display:none}
+    html[data-theme="paper-rust"] .feature-copy h2{font-size:30px;line-height:1.4;font-weight:500;word-break:keep-all}
+    html[data-theme="paper-rust"] .feature-author{margin-top:15px;color:var(--ink);font-size:14px;font-weight:400}
+    html[data-theme="paper-rust"] .feature-category{display:block;margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.5}
+    html[data-theme="paper-rust"] .short-line{width:20px;height:2px;margin:14px 0 0;border-radius:0;background:var(--orange);transform:none}
+    html[data-theme="paper-rust"] .blue-shape{display:none}
+    html[data-theme="paper-rust"] .primary-cta{position:relative;z-index:3;display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;width:calc(100% - 10px);min-height:58px;margin:-68px 5px 34px;padding:11px 18px;color:var(--cream);border-radius:0;background:var(--orange);box-shadow:none;font-size:15px;font-weight:400}
+    html[data-theme="paper-rust"] .primary-cta:before,html[data-theme="paper-rust"] .primary-cta .cta-action:before{display:none;content:none}
+    html[data-theme="paper-rust"] .primary-cta .cta-action{grid-column:2;position:static;padding:0;white-space:nowrap}
+    html[data-theme="paper-rust"] .primary-cta .cta-takeaway{display:block;grid-column:1;grid-row:1;max-width:190px;text-align:left;font-size:13px;line-height:1.55}
+    html[data-theme="paper-rust"] .primary-cta .icon{grid-column:3;color:var(--cream);font-size:25px}
+
+    html[data-theme="paper-rust"] .quote-box{position:relative;display:grid;grid-template-columns:80px minmax(0,1fr);margin-top:0;padding:0;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;background:transparent;box-shadow:none}
+    html[data-theme="paper-rust"] .quote-box:before{display:none}
+    html[data-theme="paper-rust"] .quote-count{display:flex;grid-column:1;grid-row:1 / 4;flex-direction:column;align-items:center;justify-content:center;gap:5px;border-right:1px solid var(--line)}
+    html[data-theme="paper-rust"] .quote-count b{color:var(--orange);font:500 39px/1 var(--serif)}
+    html[data-theme="paper-rust"] .quote-count span{color:var(--muted);font:400 12px var(--serif)}
+    html[data-theme="paper-rust"] .quote-meta{grid-column:2;padding:15px 18px 0;color:var(--orange);font-family:var(--serif);font-size:13px;font-weight:400;letter-spacing:.06em}
+    html[data-theme="paper-rust"] .quote-meta-count{display:none}
+    html[data-theme="paper-rust"] .refresh-quote{color:var(--orange);border:0;border-radius:0;background:transparent;padding:4px 0;font-family:var(--serif);font-size:13px;font-weight:400}
+    html[data-theme="paper-rust"] .quote-text{grid-column:2;margin:0;padding:17px 22px 6px 28px;font-size:21px;line-height:1.75;font-weight:500}
+    html[data-theme="paper-rust"] .quote-text:after{display:none}
+    html[data-theme="paper-rust"] .quote-source{grid-column:2;padding:0 22px 18px 28px;color:var(--muted);font-family:var(--serif);font-weight:400}
+
+    html[data-theme="paper-rust"] .monthly-reflection{display:grid;grid-template-columns:108px minmax(0,1fr);grid-template-rows:auto auto;margin-top:28px;padding:0;border:1px solid var(--line);border-radius:0;background:transparent;box-shadow:none}
+    html[data-theme="paper-rust"] .month-heading{grid-row:1 / 3;padding:15px;border-right:1px solid var(--line)}
+    html[data-theme="paper-rust"] .month-heading span{color:var(--orange);font-family:var(--serif);font-size:12px;font-weight:500}
+    html[data-theme="paper-rust"] .month-heading strong{font-size:21px;line-height:1.6;font-weight:500}
+    html[data-theme="paper-rust"] .month-stats{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:0;border-bottom:1px solid var(--line)}
+    html[data-theme="paper-rust"] .month-stats div{padding:12px 16px;text-align:center}
+    html[data-theme="paper-rust"] .month-stats div+div{border-left:1px dashed var(--line)}
+    html[data-theme="paper-rust"] .month-stats b{color:var(--orange);font-size:28px;font-weight:500}
+    html[data-theme="paper-rust"] .month-stats span{display:block;margin:5px 0 0;color:var(--muted);font-family:var(--serif);font-weight:400}
+    html[data-theme="paper-rust"] .month-takeaway{padding:13px 18px}
+    html[data-theme="paper-rust"] .month-label,html[data-theme="paper-rust"] .month-takeaway small{display:none}
+    html[data-theme="paper-rust"] .month-takeaway blockquote{margin:0;font-size:15px;line-height:1.75;font-weight:400}
+
+    html[data-theme="paper-rust"] .app-shell.calendar-mode .hero{min-height:0;padding:35px 34px 23px;border-bottom:1px solid var(--line)}
+    html[data-theme="paper-rust"] .app-shell.calendar-mode .panel{padding:0 34px 36px}
+    html[data-theme="paper-rust"] .calendar-intro{display:block;margin:0 4px 24px}
+    html[data-theme="paper-rust"] .calendar-intro h2{margin:0 0 7px;font-size:34px;line-height:1.25;font-weight:500}
+    html[data-theme="paper-rust"] .calendar-intro p{margin:0;color:var(--muted);font-size:14px;line-height:1.7}
+    html[data-theme="paper-rust"] .calendar-card{padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+    html[data-theme="paper-rust"] .calendar-head{margin:0 4px 20px}
+    html[data-theme="paper-rust"] .calendar-head h2{color:var(--orange);font-size:20px;font-weight:500;letter-spacing:.08em}
+    html[data-theme="paper-rust"] .calendar-head h2:after{display:none}
+    html[data-theme="paper-rust"] .calendar-head div{font-family:var(--serif);font-size:13px;font-weight:400}
+    html[data-theme="paper-rust"] .week-row{gap:0;margin-bottom:10px;font-family:var(--serif);font-size:14px;font-weight:400}
+    html[data-theme="paper-rust"] .calendar-grid{gap:0;border-top:1px solid var(--line);border-left:1px solid var(--line)}
+    html[data-theme="paper-rust"] .calendar-day{min-height:48px;color:var(--ink);border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;background:transparent;font-family:var(--serif);font-size:18px;font-weight:400}
+    html[data-theme="paper-rust"] .calendar-day.has-book{color:var(--ink)}
+    html[data-theme="paper-rust"] .calendar-day i{bottom:6px;background:var(--orange)}
+    html[data-theme="paper-rust"] .calendar-day.is-today{color:var(--cream);background:transparent}
+    html[data-theme="paper-rust"] .calendar-day.is-today span{position:relative;z-index:1;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--orange)}
+    html[data-theme="paper-rust"] .calendar-day.is-current-day:not(.is-today) span{display:grid;place-items:center;width:34px;height:34px;border:1px solid var(--ink);border-radius:50%}
+    html[data-theme="paper-rust"] .calendar-day em{right:4px;top:3px;color:var(--orange);font:500 10px var(--serif)}
+    html[data-theme="paper-rust"] .month-dashboard{display:none}
+    html[data-theme="paper-rust"] .toolbox{gap:14px;margin:34px 4px 0;padding-top:25px;border-top:1px solid var(--line)}
+    html[data-theme="paper-rust"] .count{color:var(--orange);font-family:var(--serif);font-size:17px;font-weight:500}
+    html[data-theme="paper-rust"] .search{width:72%;padding:9px 4px;color:var(--muted);border:0;border-bottom:1px solid var(--ink);border-radius:0;background:transparent;font-family:var(--serif);font-size:15px;font-weight:400;box-shadow:none}
+    html[data-theme="paper-rust"] .search:focus{border-color:var(--orange);box-shadow:none}
+    html[data-theme="paper-rust"] .shelf{gap:0;padding-bottom:20px}
+    html[data-theme="paper-rust"] .spine-line,html[data-theme="paper-rust"] .book-thumb{display:none}
+    html[data-theme="paper-rust"] .book-card{grid-template-columns:54px minmax(0,1fr) 48px 20px;gap:10px;min-height:64px;padding:0 4px;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;box-shadow:none}
+    html[data-theme="paper-rust"] .book-card:hover,html[data-theme="paper-rust"] .book-card.timeline-focus{transform:none;background:color-mix(in srgb,var(--orange) 4%,transparent)}
+    html[data-theme="paper-rust"] .book-number,html[data-theme="paper-rust"] .tone-blue .book-number,html[data-theme="paper-rust"] .tone-green .book-number{grid-column:1;align-self:center;color:var(--orange);background:transparent;font-family:var(--serif);font-size:23px;font-weight:500}
+    html[data-theme="paper-rust"] .book-title-row{grid-column:2}
+    html[data-theme="paper-rust"] .book-title{font-size:16px;font-weight:500}
+    html[data-theme="paper-rust"] .book-category{color:var(--muted);font-family:var(--serif);font-size:12px;font-weight:400}
+    html[data-theme="paper-rust"] .book-card:after{content:attr(data-date);grid-column:3;color:var(--muted);font:400 12px var(--serif);letter-spacing:.06em}
+    html[data-theme="paper-rust"] .book-card .icon{grid-column:4;color:var(--orange)}
+
+    html[data-theme="paper-rust"] dialog{background:var(--cream)}
+    html[data-theme="paper-rust"] .reader-hero{flex:0 0 auto;padding:35px 34px 25px;overflow:visible;background:transparent}
+    html[data-theme="paper-rust"] .reader-brand{margin-bottom:31px;color:var(--orange);font-size:14px}
+    html[data-theme="paper-rust"] .reader-top{margin:0 0 38px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+    html[data-theme="paper-rust"] .close{color:var(--muted);font-family:var(--serif);font-size:15px;font-weight:400}
+    html[data-theme="paper-rust"] .close .icon{color:var(--ink)}
+    html[data-theme="paper-rust"] .page-count,html[data-theme="paper-rust"] .page-count b{color:var(--muted);font-size:16px;font-weight:400}
+    html[data-theme="paper-rust"] .reader-kicker{display:none}
+    html[data-theme="paper-rust"] .reader-title{max-width:none;font-size:30px;line-height:1.42;font-weight:500}
+    html[data-theme="paper-rust"] .reader-title:after{display:none}
+    html[data-theme="paper-rust"] .reader-bookline{margin-top:13px;color:var(--muted);font-size:15px;font-weight:400}
+    html[data-theme="paper-rust"] .reader-bookline:after{content:"";display:block;width:24px;height:2px;margin-top:20px;background:var(--orange)}
+    html[data-theme="paper-rust"] .reader-body{padding:20px 34px 34px}
+    html[data-theme="paper-rust"] .progress-line{grid-template-columns:auto auto 1fr auto;gap:8px 14px;margin-bottom:28px;font-family:var(--serif);font-size:14px;font-weight:400}
+    html[data-theme="paper-rust"] .progress-line b{color:var(--orange);font-size:16px;font-weight:500}
+    html[data-theme="paper-rust"] .progress-track{grid-column:1 / -1;height:4px;border-radius:0;background:#E7DED7}
+    html[data-theme="paper-rust"] .progress-fill{border-radius:0;background:var(--orange)}
+    html[data-theme="paper-rust"] #reader-time{grid-column:4;grid-row:1}
+    html[data-theme="paper-rust"] .content-card{position:relative;display:grid;grid-template-columns:68px minmax(0,1fr);padding:0;border:1px solid var(--line);border-radius:0;background:transparent;box-shadow:none}
+    html[data-theme="paper-rust"] .content-card:before{content:attr(data-section);grid-column:1;padding-top:43px;color:var(--orange);border-right:1px dashed var(--line);text-align:center;font:500 34px/1 var(--serif)}
+    html[data-theme="paper-rust"] .reader-page-content{grid-column:2;padding:39px 24px;font-size:18px;line-height:2;font-weight:400}
+    html[data-theme="paper-rust"] .reader-page-content h3{margin:0 0 22px;font-size:23px;line-height:1.55;font-weight:500}
+    html[data-theme="paper-rust"] .reader-page-content strong{color:var(--orange);background:none}
+    html[data-theme="paper-rust"] .judgement{display:none}
+    html[data-theme="paper-rust"] .reader-bottom{grid-template-columns:1fr 1fr;margin-top:21px;border:1px solid var(--line);border-radius:0;background:transparent}
+    html[data-theme="paper-rust"] .reader-bottom button{min-height:64px;font-family:var(--serif);font-size:16px;font-weight:400}
+    html[data-theme="paper-rust"] .reader-bottom button:last-child{color:var(--cream);background:var(--orange);font-size:17px}
+
+    @media(max-width:374px){
+      html[data-theme="paper-rust"] .hero,html[data-theme="paper-rust"] .app-shell.calendar-mode .hero{padding-right:22px;padding-left:22px}
+      html[data-theme="paper-rust"] .tabs,html[data-theme="paper-rust"] .app-shell.calendar-mode .tabs{margin-right:22px;margin-left:22px}
+      html[data-theme="paper-rust"] .panel,html[data-theme="paper-rust"] .app-shell.calendar-mode .panel{padding-right:22px;padding-left:22px}
+      html[data-theme="paper-rust"] .feature-card{grid-template-columns:70px minmax(0,1fr)}
+      html[data-theme="paper-rust"] .feature-copy{padding-right:18px;padding-left:19px}
+      html[data-theme="paper-rust"] .feature-copy h2{font-size:26px}
+      html[data-theme="paper-rust"] .primary-cta .cta-takeaway{max-width:150px;font-size:12px}
+      html[data-theme="paper-rust"] .quote-box{grid-template-columns:68px minmax(0,1fr)}
+      html[data-theme="paper-rust"] .monthly-reflection{grid-template-columns:92px minmax(0,1fr)}
+      html[data-theme="paper-rust"] .content-card{grid-template-columns:56px minmax(0,1fr)}
+      html[data-theme="paper-rust"] .reader-hero,html[data-theme="paper-rust"] .reader-body{padding-right:22px;padding-left:22px}
+      html[data-theme="paper-rust"] .reader-page-content{padding:31px 18px;font-size:17px}
+    }
   </style>
 </head>
 <body>
   <main class="app-shell">
-    <header class="hero"><div class="brand">BUKU</div><h1>读到这里</h1><span class="title-line" aria-hidden="true"></span><p>每天一本值得精读的书。把观点留下，把判断带走。</p></header>
+    <header class="hero">
+      <div class="brand-row">
+        <div class="brand">BUKU</div>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-expanded="false" aria-controls="theme-menu" aria-haspopup="true">换肤</button>
+        <div id="theme-menu" class="theme-menu" hidden>
+          <p class="theme-menu-title">选择皮肤</p>
+          <button class="theme-option" type="button" data-theme-value="dopamine" aria-pressed="true"><span>线条多巴胺</span><span class="theme-status">已选择</span></button>
+          <button class="theme-option" type="button" data-theme-value="paper-rust" aria-pressed="false"><span>纸刊锈红</span><span class="theme-status">已选择</span></button>
+        </div>
+      </div>
+      <h1>读到这里</h1><span class="title-line" aria-hidden="true"></span><p>每天一本值得精读的书。把观点留下，把判断带走。</p>
+    </header>
     <nav class="tabs" aria-label="读书视图"><button class="tab active" type="button" data-tab="today-panel">今日精读</button><button class="tab" type="button" data-tab="calendar-panel">书单日历</button></nav>
     ${featureCard}
     ${calendarPanel}${cards}<div id="empty" class="empty">没有找到匹配的书。换个关键词试试。</div></section></section>
@@ -268,13 +507,22 @@ fs.writeFileSync(output, `<!doctype html>
       </header>
       <div class="reader-body">
         <div class="progress-line"><span>阅读进度</span><b id="reader-percent">0%</b><div class="progress-track"><span class="progress-fill" id="progress-fill"></span></div><span id="reader-time">还需 0 分钟</span></div>
-        <article class="content-card"><div id="reader-page-content" class="reader-page-content"></div><div class="judgement" id="reader-judgement"></div></article>
+        <article class="content-card" data-section="01"><div id="reader-page-content" class="reader-page-content"></div><div class="judgement" id="reader-judgement"></div></article>
         <div class="reader-bottom"><button id="previous-page" type="button"><span class="icon" aria-hidden="true">←</span>上一段</button><button id="next-page" type="button">下一段 <span class="icon" aria-hidden="true">→</span></button></div>
       </div>
     </div>
   </dialog>
   <script>
     const books=${payload}; const dialog=document.querySelector('#reader'); const prevPage=document.querySelector('#previous-page'); const nextPage=document.querySelector('#next-page'); let readerSections=[]; let readerBook=null; let sectionIndex=0;
+    const themeKey='buku-reading-archive.theme.v1'; const themeToggle=document.querySelector('#theme-toggle'); const themeMenu=document.querySelector('#theme-menu'); const themeOptions=[...document.querySelectorAll('.theme-option')];
+    function currentTheme(){return document.documentElement.dataset.theme==='paper-rust'?'paper-rust':'dopamine';}
+    function setThemeMenu(open){themeMenu.hidden=!open;themeToggle.setAttribute('aria-expanded',String(open));}
+    function applyTheme(theme,persist=true){const nextTheme=theme==='paper-rust'?'paper-rust':'dopamine';if(nextTheme==='paper-rust')document.documentElement.dataset.theme='paper-rust';else delete document.documentElement.dataset.theme;themeOptions.forEach(option=>option.setAttribute('aria-pressed',String(option.dataset.themeValue===nextTheme)));themeToggle.setAttribute('aria-label','更换皮肤，当前'+(nextTheme==='paper-rust'?'纸刊锈红':'线条多巴胺'));if(persist){try{localStorage.setItem(themeKey,nextTheme);}catch(error){}}}
+    applyTheme(currentTheme(),false);
+    themeToggle.onclick=()=>setThemeMenu(themeMenu.hidden);
+    themeOptions.forEach(option=>option.onclick=()=>{applyTheme(option.dataset.themeValue);setThemeMenu(false);});
+    document.addEventListener('click',event=>{if(!event.target.closest('.brand-row'))setThemeMenu(false);});
+    document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!themeMenu.hidden){setThemeMenu(false);themeToggle.focus();}});
     const quotes=books.flatMap(book=>book.quotes.map(text=>({text,source:book.title.replace(/^\\d{4}-\\d{2}-\\d{2}｜/, '')}))); let quoteIndex=Math.floor(Math.random()*Math.max(1,quotes.length));
     function showQuote(){const quote=quotes[quoteIndex];if(!quote)return;document.querySelector('#quote-text').textContent='“'+quote.text+'”';document.querySelector('#quote-source').textContent='—— '+quote.source;} showQuote();
     const refresh=document.querySelector('#refresh-quote'); if(refresh)refresh.onclick=()=>{quoteIndex=(quoteIndex+1+Math.floor(Math.random()*Math.max(1,quotes.length-1)))%quotes.length;showQuote();};
@@ -282,7 +530,7 @@ fs.writeFileSync(output, `<!doctype html>
     document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(item=>item.classList.remove('active'));document.querySelectorAll('.panel').forEach(panel=>{panel.hidden=true;panel.classList.remove('active-panel')});tab.classList.add('active');appShell.classList.toggle('calendar-mode',tab.dataset.tab==='calendar-panel');const panel=document.querySelector('#'+tab.dataset.tab);panel.hidden=false;panel.classList.add('active-panel');}));
     function splitIntoSections(html){const box=document.createElement('div');box.innerHTML=html;const sections=[];let current={title:'继续阅读',html:''};[...box.children].forEach(node=>{if(node.tagName==='H2'){if(current.html.trim())sections.push(current);current={title:node.textContent.trim(),html:''};}else{current.html+=node.outerHTML;}});if(current.html.trim())sections.push(current);return sections.length?sections:[{title:'继续阅读',html:html}];}
     function estimateMinutes(fromIndex){const rest=readerSections.slice(fromIndex).map(section=>section.html.replace(/<[^>]+>/g,'')).join('');return Math.max(1,Math.ceil(rest.length/420));}
-    function renderReader(){const total=Math.max(1,readerSections.length);const current=readerSections[sectionIndex]||{title:'继续阅读',html:''};const percent=Math.round(((sectionIndex+1)/total)*100);document.querySelector('#reader-current').textContent=String(sectionIndex+1).padStart(2,'0');document.querySelector('#reader-total').textContent=String(total).padStart(2,'0');document.querySelector('#reader-percent').textContent=percent+'%';document.querySelector('#progress-fill').style.width=percent+'%';document.querySelector('#reader-time').textContent='还需 '+estimateMinutes(sectionIndex)+' 分钟';document.querySelector('#reader-kicker').textContent=sectionIndex===0?'今日精读':'继续阅读';document.querySelector('#reader-title').textContent=current.title;document.querySelector('#reader-bookline').textContent=(readerBook.title||'').replace(/^\\d{4}-\\d{2}-\\d{2}｜/,'')+(readerBook.author?' · '+readerBook.author:'');document.querySelector('#reader-page-content').innerHTML=current.html;document.querySelector('#reader-judgement').textContent='判断：'+(readerBook.review||readerBook.quotes?.[0]||'把这一段变成一个可以执行的判断。');prevPage.disabled=sectionIndex===0;nextPage.disabled=sectionIndex>=total-1;dialog.querySelector('.reader-body').scrollTop=0;}
+    function renderReader(){const total=Math.max(1,readerSections.length);const current=readerSections[sectionIndex]||{title:'继续阅读',html:''};const percent=Math.round(((sectionIndex+1)/total)*100);document.querySelector('#reader-current').textContent=String(sectionIndex+1).padStart(2,'0');document.querySelector('#reader-total').textContent=String(total).padStart(2,'0');document.querySelector('#reader-percent').textContent=percent+'%';document.querySelector('#progress-fill').style.width=percent+'%';document.querySelector('#reader-time').textContent='还需 '+estimateMinutes(sectionIndex)+' 分钟';document.querySelector('#reader-kicker').textContent=sectionIndex===0?'今日精读':'继续阅读';document.querySelector('#reader-title').textContent=current.title;document.querySelector('#reader-bookline').textContent=(readerBook.title||'').replace(/^\\d{4}-\\d{2}-\\d{2}｜/,'')+(readerBook.author?' · '+readerBook.author:'');document.querySelector('#reader-page-content').innerHTML=current.html;document.querySelector('.content-card').dataset.section=String(sectionIndex+1).padStart(2,'0');document.querySelector('#reader-judgement').textContent='判断：'+(readerBook.review||readerBook.quotes?.[0]||'把这一段变成一个可以执行的判断。');prevPage.disabled=sectionIndex===0;nextPage.disabled=sectionIndex>=total-1;dialog.querySelector('.reader-body').scrollTop=0;}
     function openReader(index,startSection=0){readerBook=books[index];if(!readerBook)return;readerSections=splitIntoSections(readerBook.content);sectionIndex=Math.max(0,Math.min(startSection,readerSections.length-1));renderReader();dialog.showModal();}
     document.querySelectorAll('.open-reader,[data-open-index]').forEach(node=>node.addEventListener('click',()=>openReader(Number(node.dataset.openIndex))));
     prevPage.onclick=()=>{if(sectionIndex>0){sectionIndex-=1;renderReader();}};nextPage.onclick=()=>{if(sectionIndex<readerSections.length-1){sectionIndex+=1;renderReader();}};document.addEventListener('keydown',event=>{if(!dialog.open)return;if(event.key==='ArrowRight')nextPage.click();if(event.key==='ArrowLeft')prevPage.click();if(event.key==='Escape')dialog.close();});
