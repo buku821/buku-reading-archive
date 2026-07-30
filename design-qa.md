@@ -1,22 +1,53 @@
-**Findings**
-- No P0/P1/P2 issues remain for this iteration.
+# 双皮肤设计验收
 
-**What Was Checked**
-- Target direction: the BUKU reference mockups the user reattached in this thread.
-- Implementation screenshots:
-  - `/Users/wangjiayu/Documents/好好学习/读书回顾网页/buku-implemented-home-cdp.png`
-  - `/Users/wangjiayu/Documents/好好学习/读书回顾网页/buku-implemented-calendar-cdp.png`
-  - `/Users/wangjiayu/Documents/好好学习/读书回顾网页/buku-implemented-reader-cdp.png`
-- Viewport: 390 x 844 CSS px.
+## 验收对象
 
-**Passed Surfaces**
-- Homepage now uses the large lime organic header, cream cutout, orange accent, bigger book card, larger blue CTA, and heavier Songti-style Chinese hierarchy.
-- Calendar tab now has its own compact BUKU layout instead of inheriting the homepage hero.
-- Reader page now uses the oversized lime header, cream page-count cutout, blue contour accent, heavy serif title, real markdown reading content, and next/previous controls.
-- Palette is kept to the requested set: `#F9F8E1`, `#62A3FF`, `#FFA300`, `#ABDF1A`, plus black.
-- No horizontal overflow was visible in the captured mobile viewport.
+- 默认皮肤：线条多巴胺。
+- 新增皮肤：纸刊锈红。
+- 手机视口：390 × 844 CSS px；应用可用区实测 375 × 812 px；设备像素比 2。
+- 窄屏补测：320 px；宽屏补测：430 px。
 
-**Remaining P3 Polish**
-- The hand-drawn arrows and contour lines are implemented with CSS glyphs/patterns, so they are close in spirit rather than exact vector matches.
+## 视觉来源
+
+- 首页参考：`/var/folders/ny/tkm5hfy17dn9dplcvc8y51d80000gn/T/codex-clipboard-37372423-e77b-4bcd-9e85-f40073de7de0.png`
+- 日历参考：`/Users/wangjiayu/.codex/generated_images/019fad52-c763-73f1-8721-1d2e648c3d76/call_AGOeC1C7MsYmpH41F0P4yzxY.png`
+- 阅读页参考：`/Users/wangjiayu/.codex/generated_images/019fad52-c763-73f1-8721-1d2e648c3d76/call_fpgKTHpapqiGvHL5IQtIes4E.png`
+
+## 实现截图与同屏对照
+
+- 首页实现：`/tmp/buku-theme-qa/rust-home-final.png`
+- 日历实现：`/tmp/buku-theme-qa/rust-calendar-final.png`
+- 阅读页实现：`/tmp/buku-theme-qa/rust-reader-final.png`
+- 首页同屏对照：`/tmp/buku-theme-qa/compare-home.png`
+- 日历同屏对照：`/tmp/buku-theme-qa/compare-calendar.png`
+- 阅读页同屏对照：`/tmp/buku-theme-qa/compare-reader.png`
+
+对照图均把参考图与实现图放进同一张 750 × 812 px 图片后再判断差异，没有只凭单张截图验收。
+
+## 对照结论
+
+- 首页保留了纸刊参考的暖白底、锈红点色、宋体层级、细线分区、日期窄栏、通栏阅读入口和金句计数栏。
+- 日历保留了月份信息、七列细线网格、阅读日期标记、当日圆形强调和按日期排列的书目列表。
+- 阅读页保留了轻量顶部导航、标题与书目信息、锈红阅读进度、左侧章节编号栏和底部翻页逻辑。
+- 真实内容比静态参考更长，因此实现按可滚动页面处理，没有为追求截图一致而截断正文。
+- 两套皮肤均无横向溢出；320、390、430 px 下标题、卡片、日历和阅读正文保持可读。
+
+## 交互与状态
+
+- “换肤”菜单可打开、关闭，并能在“线条多巴胺”和“纸刊锈红”之间双向切换。
+- 刷新页面后会记住上次选择，首屏加载时不会先闪出另一套皮肤。
+- 今日精读、书单日历、金句换一句、书名搜索、打开阅读、上一段、下一段均通过真实点击或输入验证。
+- 最终交互轮次没有出现导航、点击、输入或渲染异常；浏览器控制面未提供原始 console 日志流，因此以页面完成状态、交互断言和错误界面检查作为运行时验收依据。
+
+## 修正记录
+
+1. 第一轮发现旧的隐藏规则会让最新构建中的“换肤”入口消失；已移除并用带缓存标记的最新文件复验。
+2. 第一轮发现点击“书单日历”后出现浏览器默认方框焦点样式；已改成与皮肤一致的下划线焦点反馈。
+3. 第二轮重新生成首页、日历、阅读页截图并同屏对照，未发现 P0、P1、P2 问题。
+
+## 剩余 P3 差异
+
+- 纸刊皮肤使用系统宋体，字形会随手机系统略有变化。
+- 实际金句与书名来自每日内容库，所以文字换行不会与静态参考逐字一致。
 
 final result: passed
