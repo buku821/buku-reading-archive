@@ -2,6 +2,9 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>buku · 读到这里</title>
   <style>
     :root{--cream:#F9F8E1;--blue:#62A3FF;--orange:#FFA300;--green:#ABDF1A;--ink:#111111;--display:"STSongti-SC-Black","Songti SC","Noto Serif CJK SC","SimSun",serif;--serif:"Songti SC","STSongti-SC-Regular","Noto Serif CJK SC","SimSun",serif;--sans:"Avenir Next","Avenir","PingFang SC","Hiragino Sans GB",ui-sans-serif,system-ui,sans-serif;--num:"DIN Alternate","Avenir Next Condensed","Avenir Next",ui-sans-serif,system-ui,sans-serif;--line:color-mix(in srgb,var(--ink) 10%,transparent);--shadow:0 18px 44px color-mix(in srgb,var(--ink) 10%,transparent)}
@@ -54,6 +57,19 @@
     .app-shell.calendar-mode .tab{font-size:20px;padding:14px 6px 15px}.app-shell.calendar-mode .tab.active:after{left:38px;right:38px;bottom:10px}
     .app-shell.calendar-mode .panel{padding-top:0}.app-shell.calendar-mode .calendar-card{margin-top:0}
     .timeline-nav{display:none}@media(max-width:430px){.hero h1{font-size:54px}.feature-copy h2{font-size:32px}.reader-title{font-size:42px}.reader-page-content{font-size:22px}}@media(max-width:374px){.hero h1{font-size:48px}.feature-copy h2{font-size:28px}.reader-title{font-size:38px}.tabs{margin-left:18px;margin-right:18px}.panel{padding-left:18px;padding-right:18px}}@media(min-width:760px){body{padding:28px 0}.app-shell,dialog{border-radius:8px;box-shadow:0 18px 48px color-mix(in srgb,var(--ink) 18%,transparent)}dialog{margin:auto}}
+    .hero{min-height:236px;padding:26px 20px 54px}.hero:before{left:-78px;top:-42px;width:338px;height:252px;border-bottom-right-radius:142px 92px}.hero:after{right:-76px;top:-70px;width:216px;height:148px}.brand{font-size:13px}.brand:after{right:-302px;font-size:24px}.hero h1{margin:27px 0 3px;font-size:43px;line-height:1.03}.hero h1:before{right:-142px;top:104px;width:96px;height:96px}.hero p{max-width:286px;margin-top:10px;font-size:14px;line-height:1.58}.hero p:before{left:-76px;top:-2px;width:56px;height:92px}.hero p:after{right:-42px;top:-86px;font-size:52px}.title-line{width:142px;margin-top:5px}
+    .tabs{height:58px;margin:-38px 20px 14px;padding:0 12px;box-shadow:0 10px 26px color-mix(in srgb,var(--ink) 8%,transparent)}.tab{padding:15px 6px 13px;font-size:17px}.tab.active:after{left:24px;right:24px;bottom:9px}.panel{padding:0 20px 22px}
+    .feature-card{grid-template-columns:78px minmax(0,1fr);min-height:218px;border-radius:8px;box-shadow:0 12px 30px color-mix(in srgb,var(--ink) 8%,transparent)}.feature-card:before{left:-70px;top:66px;width:88px;height:124px}.date-rail{gap:8px}.date-rail span{font-size:13px}.date-rail b{font-size:18px}.date-rail b:before,.date-rail span:after{width:13px;margin-top:7px}.date-rail small{margin-top:7px;font-size:11px}.feature-copy{padding:24px 18px 22px 12px}.section-kicker{margin-bottom:18px;font-size:18px}.section-kicker:after{width:82px;margin-top:7px}.feature-copy h2{font-size:25px;line-height:1.32}.feature-author{margin-top:14px;font-size:14px}.short-line{margin-top:12px}.blue-shape{right:-68px;width:118px;height:164px}
+    .primary-cta{min-height:62px;margin:14px 0 16px;padding:12px 20px;border-radius:9px;font-size:21px;box-shadow:0 10px 24px color-mix(in srgb,var(--blue) 30%,transparent)}.primary-cta:before{font-size:27px}.primary-cta span:first-child{padding:3px 24px}.primary-cta .icon{font-size:27px}
+    .quote-box{padding:20px 18px;margin-top:16px}.quote-box:before{top:72px;font-size:30px}.quote-meta{font-size:11px}.refresh-quote{padding:6px 10px;font-size:11px}.quote-text{margin:18px 8px 12px 18px;font-size:18px;line-height:1.58}.monthly-reflection{margin-top:14px;padding:16px}.month-heading strong{font-size:20px}.month-stats{margin:12px 0}.month-stats b{font-size:24px}.month-takeaway blockquote{font-size:15px;line-height:1.55}
+    .calendar-card{padding:20px 18px}.calendar-head h2{font-size:24px}.calendar-day{min-height:35px;font-size:18px}.month-dashboard{margin:14px 0;padding:10px 0}.app-shell.calendar-mode .hero{min-height:76px;padding:28px 20px 12px}.app-shell.calendar-mode .tabs{height:52px;margin:0 20px 14px}.app-shell.calendar-mode .tab{font-size:17px;padding:13px 6px 12px}.app-shell.calendar-mode .tab.active:after{left:34px;right:34px}
+    .reader-hero{flex-basis:318px;padding:24px 20px 24px}.reader-hero:before{left:-80px;top:-62px;width:392px;height:336px;border-bottom-right-radius:172px 104px}.reader-hero:after{right:-44px;width:126px;height:90px}.reader-brand{margin-bottom:30px;font-size:13px}.reader-top{margin-bottom:38px}.reader-top:after{right:56px;top:28px;font-size:42px}.close{font-size:17px}.close .icon{font-size:24px}.page-count{font-size:15px}.page-count:before{right:-54px;top:-78px;width:166px;height:118px}.page-count b{font-size:25px}.reader-kicker{margin-bottom:16px;font-size:18px}.reader-kicker:after{width:92px;margin-top:6px}.reader-title{max-width:340px;font-size:30px;line-height:1.2}.reader-title:after{width:134px;margin-top:8px}.reader-bookline{margin-top:15px;font-size:15px}.reader-body{padding:18px 16px 16px}.progress-line{gap:8px 10px;margin-bottom:16px;font-size:13px}.progress-line b{font-size:23px}.content-card{padding:22px 20px;border-radius:16px}.reader-page-content{font-size:18px;line-height:1.78}.reader-page-content h3{font-size:19px}.reader-page-content p{margin-bottom:18px}.judgement{margin-top:18px;padding:13px 14px;font-size:17px;line-height:1.68}.reader-bottom{margin-top:14px;border-radius:14px}.reader-bottom button{min-height:62px;font-size:14px}.reader-bottom button:last-child{font-size:18px}
+    .hero{min-height:208px;padding:24px 20px 46px}.hero:before{width:318px;height:224px;border-bottom-right-radius:128px 82px}.hero h1{font-size:36px;line-height:1.05;margin-top:24px}.hero h1:before{top:86px;width:78px;height:78px}.hero p{max-width:270px;font-size:13px;line-height:1.5}.title-line{width:122px}
+    .tabs{height:50px;margin:-30px 20px 12px}.tab{font-size:15px;padding:12px 6px 10px}.tab.active:after{bottom:7px}
+    .feature-card{grid-template-columns:70px minmax(0,1fr);min-height:174px}.feature-copy{padding:20px 18px 18px 10px}.feature-copy h2{font-size:22px;line-height:1.28}.feature-author{margin-top:11px;font-size:13px}.date-rail span{font-size:12px}.date-rail b{font-size:16px}.date-rail small{font-size:10px}.blue-shape{right:-74px;width:112px;height:134px}.short-line{margin-top:10px}
+    .primary-cta{min-height:52px;margin:12px 0 14px;font-size:18px}.primary-cta:before{font-size:23px}.primary-cta .icon{font-size:23px}.quote-box{padding:17px 16px}.quote-box:before{top:62px;font-size:26px}.quote-text{font-size:16px;line-height:1.52}.quote-source{font-size:12px}.monthly-reflection{padding:14px}.month-heading strong{font-size:18px}.month-takeaway blockquote{font-size:14px}
+    .calendar-head h2{font-size:21px}.calendar-day{font-size:16px;min-height:32px}.book-card{min-height:56px;grid-template-columns:58px 58px minmax(0,1fr) 26px}.book-title{font-size:15px}.book-number{font-size:18px}.book-thumb{height:44px;font-size:11px}.book-category{font-size:10px}
+    .reader-hero{flex-basis:250px;padding:22px 20px 18px}.reader-hero:before{width:350px;height:264px;border-bottom-right-radius:146px 84px}.reader-brand{margin-bottom:24px}.reader-top{margin-bottom:24px}.reader-top:after{display:none}.reader-kicker{display:none!important}.reader-title{max-width:318px;font-size:24px;line-height:1.2}.reader-title:after{width:112px;margin-top:7px}.reader-bookline{margin-top:10px;font-size:13px}.reader-hero:after{width:96px;height:70px}.page-count b{font-size:22px}.reader-body{padding:14px 14px 14px}.progress-line{grid-template-columns:auto auto 1fr;font-size:12px;margin-bottom:12px}.progress-line b{font-size:20px}.content-card{padding:18px 17px;border-radius:14px}.reader-page-content{font-size:16px;line-height:1.72}.reader-page-content h3{font-size:17px}.reader-page-content p{margin-bottom:15px}.judgement{font-size:15px;line-height:1.6}.reader-bottom button{min-height:54px}.reader-bottom button:last-child{font-size:16px}
   </style>
 </head>
 <body>
@@ -65,7 +81,6 @@
     <article class="feature-card">
       <div class="date-rail"><span>2026</span><b>07</b><b>29</b><small>第 07 本</small></div>
       <div class="feature-copy">
-        <p class="section-kicker">今日精读</p>
         <h2>《优秀到不能被忽视》</h2>
         <p class="feature-author">卡尔·纽波特</p>
         <span class="short-line"></span>
@@ -144,7 +159,7 @@
       <header class="reader-hero">
         <div class="reader-brand">BUKU</div>
         <div class="reader-top"><button class="close" id="close" type="button" aria-label="返回书单"><span class="icon" aria-hidden="true">←</span><span>书籍详情</span></button><div class="page-count"><b id="reader-current">01</b> / <span id="reader-total">01</span></div></div>
-        <div class="reader-kicker" id="reader-kicker">今日精读</div>
+        <div class="reader-kicker" id="reader-kicker" aria-hidden="true"></div>
         <h2 class="reader-title" id="reader-title"></h2>
         <p class="reader-bookline" id="reader-bookline"></p>
       </header>
