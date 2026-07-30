@@ -276,7 +276,19 @@
     html[data-theme="paper-rust"] .reader-bottom button{min-height:52px;font-family:var(--serif);font-size:14px;font-weight:400}
     html[data-theme="paper-rust"] .reader-bottom button:last-child{color:var(--cream);background:var(--orange);font-size:15px}
 
-    @media(max-width:380px){
+    @media(min-width:381px) and (max-width:480px){
+      html[data-theme="paper-rust"] .feature-card{min-height:clamp(225px,calc(30svh - 18px),270px)}
+      html[data-theme="paper-rust"] .quote-box{min-height:clamp(158px,calc(30svh - 85px),205px)}
+      html[data-theme="paper-rust"] .monthly-reflection{min-height:clamp(174px,calc(50svh - 237px),235px);margin-top:clamp(14px,calc(5svh - 26px),20px)}
+    }
+
+    @media(min-width:341px) and (max-width:380px){
+      html[data-theme="paper-rust"] .feature-card{min-height:230px}
+      html[data-theme="paper-rust"] .quote-box{min-height:160px}
+      html[data-theme="paper-rust"] .monthly-reflection{min-height:176px;margin-top:14px}
+    }
+
+    @media(max-width:340px){
       html[data-theme="paper-rust"] .hero,html[data-theme="paper-rust"] .app-shell.calendar-mode .hero{padding-right:14px;padding-left:14px}
       html[data-theme="paper-rust"] .tabs,html[data-theme="paper-rust"] .app-shell.calendar-mode .tabs{margin-right:14px;margin-left:14px}
       html[data-theme="paper-rust"] .panel,html[data-theme="paper-rust"] .app-shell.calendar-mode .panel{padding-right:14px;padding-left:14px}
