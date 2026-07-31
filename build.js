@@ -83,6 +83,63 @@ function extractQuotes(markdown) {
     .filter(Boolean);
 }
 
+function extractQuoteHighlight(text) {
+  const clean = String(text || '').trim().replace(/^[“”"']+|[“”"'。！？；]+$/g, '');
+  let candidate = clean;
+  let pivot = -1;
+  let pivotLength = 0;
+
+  for (const marker of ['而是', '不如']) {
+    const index = clean.lastIndexOf(marker);
+    if (index > pivot) {
+      pivot = index;
+      pivotLength = marker.length;
+    }
+  }
+
+  if (pivot >= 0) {
+    candidate = clean.slice(pivot + pivotLength);
+  } else {
+    const clauses = clean.split(/[，；：]/).map(value => value.trim()).filter(Boolean);
+    candidate = clauses.at(-1) || clean;
+  }
+
+  const innerClauses = candidate.split(/[，；：]/).map(value => value.trim()).filter(Boolean);
+  candidate = innerClauses.at(-1) || candidate;
+  candidate = candidate.replace(/^(?:(?:本质上|首先|通常|往往|因为|所以|那么|其实|在于|来自|意味着)|[而也就却仍它这是他])+/, '').trim();
+
+  if (candidate.length > 14) {
+    const anchors = ['取决于', '意味着', '需要', '才能', '才会', '仍能', '能让', '敢把', '在于', '来自', '让', '把', '被', '比'];
+    let picked = '';
+    for (const anchor of anchors) {
+      const index = candidate.lastIndexOf(anchor);
+      if (index < 0) continue;
+      for (const start of [index, index + anchor.length]) {
+        const next = candidate.slice(start).trim();
+        if (next.length >= 4 && next.length <= 14) {
+          picked = next;
+          break;
+        }
+      }
+      if (picked) break;
+    }
+    if (picked) candidate = picked;
+  }
+
+  if (candidate.length > 14) candidate = candidate.slice(-14);
+  if (candidate.length < 5 && pivot >= 0) {
+    const withPivot = clean.slice(pivot).replace(/[。！？；]+$/, '');
+    if (withPivot.length <= 14) candidate = withPivot;
+  }
+  if (candidate.length < 4) {
+    const clauses = clean.split(/[，；：]/).map(value => value.trim()).filter(Boolean);
+    candidate = clauses.at(-1) || clean;
+  }
+  if (candidate.endsWith('才会') && candidate.length > 6) candidate = candidate.slice(0, -2);
+  if (candidate.endsWith('的') && candidate.length > 6) candidate = candidate.slice(0, -1);
+  return candidate.length > 14 ? candidate.slice(-14) : candidate;
+}
+
 function extractReviewLine(markdown) {
   const section = extractSection(markdown, '以后回看时看这 3 行');
   return section.split('\n')
@@ -101,6 +158,7 @@ const books = fs.readdirSync(sourceDir)
     const reason = extractSection(markdown, '今天为什么读这本');
     const summary = reason.replace(/\n+/g, ' ').trim().slice(0, 82) + (reason.length > 82 ? '…' : '');
     const topic = file.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/\.md$/, '').split('-')[0];
+    const quotes = extractQuotes(markdown);
     return {
       title,
       author,
@@ -108,7 +166,8 @@ const books = fs.readdirSync(sourceDir)
       date,
       topic,
       summary,
-      quotes: extractQuotes(markdown),
+      quotes,
+      quoteHighlights: quotes.map(extractQuoteHighlight),
       review: extractReviewLine(markdown),
       content: markdownToHtml(markdown)
     };
@@ -406,6 +465,7 @@ fs.writeFileSync(output, `<!doctype html>
     .quote-poster-body{position:relative;display:flex;align-items:center;min-height:0;padding:28px 4px 20px}
     .quote-poster-body:before{content:"“";position:absolute;left:-2px;top:18px;color:color-mix(in srgb,var(--orange) 18%,transparent);font:500 74px/1 var(--serif)}
     .quote-poster-body blockquote{position:relative;z-index:1;width:100%;margin:0;font-size:clamp(23px,7vw,30px);line-height:1.7;font-weight:500;letter-spacing:.025em;text-wrap:pretty}
+    .quote-poster-body mark{color:var(--orange);background:linear-gradient(transparent 76%,color-mix(in srgb,var(--orange) 20%,transparent) 0);padding:0 .05em;font-weight:600;box-decoration-break:clone;-webkit-box-decoration-break:clone}
     .quote-poster-body blockquote:after{content:"";display:block;width:34px;height:2px;margin-top:24px;background:var(--orange)}
     .quote-poster-foot{padding:18px 4px 2px;border-top:1px solid var(--line)}
     .quote-poster-source{display:flex;flex-direction:column;gap:6px;min-width:0}
@@ -529,10 +589,11 @@ ${quotePanel}
   </dialog>
   <script>
     const books=${payload}; const dialog=document.querySelector('#reader'); const prevPage=document.querySelector('#previous-page'); const nextPage=document.querySelector('#next-page'); let readerSections=[]; let readerBook=null; let sectionIndex=0;
-    const quotes=books.flatMap((book,bookIndex)=>book.quotes.map(text=>({text,source:book.title.replace(/^\\d{4}-\\d{2}-\\d{2}｜/, ''),author:book.author||book.category||'',bookIndex}))); let quoteIndex=Math.floor(Math.random()*Math.max(1,quotes.length)); let archiveQuoteIndex=quoteIndex;
+    const quotes=books.flatMap((book,bookIndex)=>book.quotes.map((text,quoteIndex)=>({text,highlight:book.quoteHighlights?.[quoteIndex]||'',source:book.title.replace(/^\\d{4}-\\d{2}-\\d{2}｜/, ''),author:book.author||book.category||'',bookIndex}))); let quoteIndex=Math.floor(Math.random()*Math.max(1,quotes.length)); let archiveQuoteIndex=quoteIndex;
     function showQuote(){const quote=quotes[quoteIndex];if(!quote)return;document.querySelector('#quote-text').textContent='“'+quote.text+'”';document.querySelector('#quote-source').textContent='—— '+quote.source;} showQuote();
     const refresh=document.querySelector('#refresh-quote'); if(refresh)refresh.onclick=()=>{quoteIndex=(quoteIndex+1+Math.floor(Math.random()*Math.max(1,quotes.length-1)))%quotes.length;showQuote();};
-    function showArchiveQuote(){const quote=quotes[archiveQuoteIndex];if(!quote)return;document.querySelector('#archive-quote-current').textContent=String(archiveQuoteIndex+1).padStart(2,'0');document.querySelector('#archive-quote-text').textContent='“'+quote.text+'”';document.querySelector('#archive-quote-source').textContent='—— '+quote.source;document.querySelector('#archive-quote-author').textContent=quote.author;document.querySelector('#archive-open-source').dataset.openIndex=quote.bookIndex;} showArchiveQuote();
+    function renderPosterQuote(text,highlight){const target=document.querySelector('#archive-quote-text');const index=highlight?text.lastIndexOf(highlight):-1;if(index<0){target.textContent='“'+text+'”';return;}const mark=document.createElement('mark');mark.textContent=highlight;target.replaceChildren(document.createTextNode('“'+text.slice(0,index)),mark,document.createTextNode(text.slice(index+highlight.length)+'”'));}
+    function showArchiveQuote(){const quote=quotes[archiveQuoteIndex];if(!quote)return;document.querySelector('#archive-quote-current').textContent=String(archiveQuoteIndex+1).padStart(2,'0');renderPosterQuote(quote.text,quote.highlight);document.querySelector('#archive-quote-source').textContent='—— '+quote.source;document.querySelector('#archive-quote-author').textContent=quote.author;document.querySelector('#archive-open-source').dataset.openIndex=quote.bookIndex;} showArchiveQuote();
     const archiveRefresh=document.querySelector('#archive-refresh-quote'); if(archiveRefresh)archiveRefresh.onclick=()=>{archiveQuoteIndex=(archiveQuoteIndex+1+Math.floor(Math.random()*Math.max(1,quotes.length-1)))%quotes.length;showArchiveQuote();};
     const appShell=document.querySelector('.app-shell');
     document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(item=>item.classList.remove('active'));document.querySelectorAll('.panel').forEach(panel=>{panel.hidden=true;panel.classList.remove('active-panel')});tab.classList.add('active');appShell.classList.toggle('calendar-mode',tab.dataset.tab!=='today-panel');const panel=document.querySelector('#'+tab.dataset.tab);panel.hidden=false;panel.classList.add('active-panel');}));
