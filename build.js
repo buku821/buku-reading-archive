@@ -6,6 +6,10 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const sourceDir = path.join(root, '每日读书推送');
 const output = path.join(__dirname, 'index.html');
+const quoteHighlightsFile = path.join(__dirname, 'quote-highlights.json');
+const curatedQuoteHighlights = fs.existsSync(quoteHighlightsFile)
+  ? JSON.parse(fs.readFileSync(quoteHighlightsFile, 'utf8'))
+  : {};
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, char => ({
@@ -84,7 +88,13 @@ function extractQuotes(markdown) {
 }
 
 function extractQuoteHighlight(text) {
-  const clean = String(text || '').trim().replace(/^[“”"']+|[“”"'。！？；]+$/g, '');
+  const original = String(text || '').trim();
+  const curated = curatedQuoteHighlights[original];
+  if (typeof curated === 'string' && curated.length >= 4 && curated.length <= 14 && original.includes(curated)) {
+    return curated;
+  }
+
+  const clean = original.replace(/^[“”"']+|[“”"'。！？；]+$/g, '');
   let candidate = clean;
   let pivot = -1;
   let pivotLength = 0;
