@@ -198,36 +198,19 @@ const cards = books.map((book, index) => `
     <span class="icon" aria-hidden="true">→</span>
   </button>`).join('');
 
-const quoteArchiveGroups = books.map((book, bookIndex) => `
-  <details class="quote-group"${bookIndex === 0 ? ' open' : ''}>
-    <summary>
-      <span class="quote-group-index">${String(bookIndex + 1).padStart(2, '0')}</span>
-      <span class="quote-group-title"><strong>${escapeHtml(displayTitle(book))}</strong><small>${escapeHtml(book.author || book.category || '')}</small></span>
-      <span class="quote-group-count">${book.quotes.length} 句 <i aria-hidden="true">＋</i></span>
-    </summary>
-    <div class="quote-group-list">${book.quotes.map((quote, quoteIndex) => `
-        <article class="quote-entry">
-          <span class="quote-entry-index">${String(quoteIndex + 1).padStart(2, '0')}</span>
-          <p>“${escapeHtml(quote)}”</p>
-          <button class="open-reader" type="button" data-open-index="${bookIndex}" aria-label="阅读${escapeHtml(displayTitle(book))}">读这本 <span aria-hidden="true">→</span></button>
-        </article>`).join('')}
-    </div>
-  </details>`).join('');
-
 const quotePanel = `
   <section id="quotes-panel" class="panel quote-archive-panel" hidden>
-    <header class="quote-archive-intro">
-      <div><span>QUOTE ARCHIVE</span><h2>金句回顾</h2></div>
-      <div class="quote-archive-total"><b>${quoteCount}</b><span>句已收录</span></div>
-      <p>从 ${books.length} 本书里，重新遇见一个值得带走的判断。</p>
-    </header>
-    <section class="quote-random-card" aria-label="随机金句">
-      <div class="quote-random-meta"><span>随机一句</span><button id="archive-refresh-quote" type="button">换一句 <span aria-hidden="true">↻</span></button></div>
-      <blockquote id="archive-quote-text"></blockquote>
-      <div class="quote-random-bottom"><span id="archive-quote-source"></span><button id="archive-open-source" class="open-reader" type="button" data-open-index="0">读这本 <span aria-hidden="true">→</span></button></div>
-    </section>
-    <div class="quote-list-heading"><span>按书回看</span><small>${books.length} 本书</small></div>
-    <section class="quote-groups">${quoteArchiveGroups || '<p class="empty-state">还没有收录金句。</p>'}</section>
+    <article class="quote-poster" aria-label="金句海报">
+      <header class="quote-poster-head">
+        <div><span>QUOTE POSTER</span><strong>金句回顾</strong></div>
+        <div class="quote-poster-index"><b id="archive-quote-current">01</b><span>/ ${String(quoteCount).padStart(2, '0')}</span></div>
+      </header>
+      <div class="quote-poster-body"><blockquote id="archive-quote-text"></blockquote></div>
+      <footer class="quote-poster-foot">
+        <div class="quote-poster-source"><span id="archive-quote-source"></span><small id="archive-quote-author"></small></div>
+        <div class="quote-poster-actions"><button id="archive-open-source" class="open-reader" type="button" data-open-index="0">读这本 <span aria-hidden="true">→</span></button><button id="archive-refresh-quote" type="button">换一句 <span aria-hidden="true">↻</span></button></div>
+      </footer>
+    </article>
   </section>`;
 
 let previousMonth = '';
@@ -410,42 +393,27 @@ fs.writeFileSync(output, `<!doctype html>
     .book-card:after{content:attr(data-date);grid-column:3;color:var(--muted);font:400 12px var(--serif);letter-spacing:.06em}
     .book-card .icon{grid-column:4;color:var(--orange)}
 
-    .quote-archive-panel{padding-top:0;padding-bottom:36px}
-    .quote-archive-intro{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 16px;margin:0 4px 22px}
-    .quote-archive-intro>div:first-child>span{display:block;margin-bottom:7px;color:var(--orange);font-size:10px;letter-spacing:.18em}
-    .quote-archive-intro h2{margin:0;font-size:34px;line-height:1.2;font-weight:500}
-    .quote-archive-intro p{grid-column:1 / -1;margin:4px 0 0;color:var(--muted);font-size:14px;line-height:1.65}
-    .quote-archive-total{align-self:center;display:flex;flex-direction:column;align-items:flex-end}
-    .quote-archive-total b{color:var(--orange);font:500 36px/1 var(--serif)}
-    .quote-archive-total span{margin-top:5px;color:var(--muted);font-size:10px}
-    .quote-random-card{position:relative;margin:0 0 24px;padding:15px 16px 17px;border:1px solid var(--line);background:transparent}
-    .quote-random-card:before{content:"";position:absolute;left:-1px;top:-1px;width:25px;height:25px;border-top:2px solid var(--orange);border-left:2px solid var(--orange)}
-    .quote-random-meta,.quote-random-bottom{display:flex;align-items:center;justify-content:space-between;gap:14px}
-    .quote-random-meta{padding-left:11px;color:var(--orange);font-size:12px;letter-spacing:.08em}
-    .quote-random-meta button,.quote-random-bottom button{border:0;background:transparent;padding:3px 0;color:var(--orange);font-size:12px}
-    .quote-random-card blockquote{min-height:100px;margin:20px 4px 15px 11px;font-size:20px;line-height:1.65;font-weight:500}
-    .quote-random-bottom{padding-left:11px}
-    .quote-random-bottom>span{min-width:0;color:var(--muted);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .quote-random-bottom button{flex:0 0 auto;border-bottom:1px solid var(--orange)}
-    .quote-list-heading{display:flex;align-items:center;justify-content:space-between;margin:0 4px 8px;padding-bottom:10px;border-bottom:1px solid var(--line)}
-    .quote-list-heading span{color:var(--orange);font-size:15px;letter-spacing:.08em}
-    .quote-list-heading small{color:var(--muted);font-size:11px}
-    .quote-group{border-bottom:1px solid var(--line)}
-    .quote-group summary{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:10px;min-height:68px;padding:10px 4px;cursor:pointer;list-style:none}
-    .quote-group summary::-webkit-details-marker{display:none}
-    .quote-group-index{color:var(--orange);font-size:13px}
-    .quote-group-title{display:flex;flex-direction:column;gap:4px;min-width:0}
-    .quote-group-title strong{font-size:16px;line-height:1.35;font-weight:500;overflow-wrap:anywhere}
-    .quote-group-title small{color:var(--muted);font-size:11px}
-    .quote-group-count{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:11px;white-space:nowrap}
-    .quote-group-count i{color:var(--orange);font-size:18px;font-style:normal;transition:transform .2s ease}
-    .quote-group[open] .quote-group-count i{transform:rotate(45deg)}
-    .quote-group-list{border-top:1px dashed var(--line)}
-    .quote-entry{display:grid;grid-template-columns:28px minmax(0,1fr);gap:0 8px;padding:14px 4px;border-bottom:1px dashed var(--line)}
-    .quote-entry:last-child{border-bottom:0}
-    .quote-entry-index{grid-column:1;grid-row:1 / 3;padding-top:3px;color:var(--orange);font-size:10px}
-    .quote-entry p{grid-column:2;margin:0;font-size:16px;line-height:1.7;font-weight:400}
-    .quote-entry button{grid-column:2;justify-self:start;margin-top:9px;border:0;border-bottom:1px solid var(--orange);background:transparent;padding:2px 0;color:var(--orange);font-size:11px}
+    .app-shell.calendar-mode .quote-archive-panel{padding-top:0;padding-bottom:20px}
+    .quote-poster{position:relative;display:grid;grid-template-rows:auto 1fr auto;height:calc(100svh - 143px);min-height:557px;padding:22px 22px 20px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(var(--orange),var(--orange)) left 12px top 12px/42px 2px no-repeat,linear-gradient(var(--orange),var(--orange)) left 12px top 12px/2px 42px no-repeat,linear-gradient(var(--orange),var(--orange)) right 12px bottom 12px/42px 2px no-repeat,linear-gradient(var(--orange),var(--orange)) right 12px bottom 12px/2px 42px no-repeat,radial-gradient(circle at 88% 12%,color-mix(in srgb,var(--orange) 7%,transparent) 0 74px,transparent 75px),transparent}
+    .quote-poster:before{content:"";position:absolute;left:22px;right:22px;top:82px;border-top:1px solid var(--line)}
+    .quote-poster-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:2px 4px 18px}
+    .quote-poster-head>div:first-child{display:flex;flex-direction:column;gap:6px}
+    .quote-poster-head>div:first-child span{color:var(--orange);font-size:9px;letter-spacing:.2em}
+    .quote-poster-head>div:first-child strong{font-size:19px;line-height:1.2;font-weight:500}
+    .quote-poster-index{display:flex;align-items:baseline;gap:5px}
+    .quote-poster-index b{color:var(--orange);font:500 28px/1 var(--serif)}
+    .quote-poster-index span{color:var(--muted);font-size:11px}
+    .quote-poster-body{position:relative;display:flex;align-items:center;min-height:0;padding:28px 4px 20px}
+    .quote-poster-body:before{content:"“";position:absolute;left:-2px;top:18px;color:color-mix(in srgb,var(--orange) 18%,transparent);font:500 74px/1 var(--serif)}
+    .quote-poster-body blockquote{position:relative;z-index:1;width:100%;margin:0;font-size:clamp(23px,7vw,30px);line-height:1.7;font-weight:500;letter-spacing:.025em;text-wrap:pretty}
+    .quote-poster-body blockquote:after{content:"";display:block;width:34px;height:2px;margin-top:24px;background:var(--orange)}
+    .quote-poster-foot{padding:18px 4px 2px;border-top:1px solid var(--line)}
+    .quote-poster-source{display:flex;flex-direction:column;gap:6px;min-width:0}
+    .quote-poster-source span{font-size:14px;line-height:1.5;font-weight:500;overflow-wrap:anywhere}
+    .quote-poster-source small{color:var(--muted);font-size:11px}
+    .quote-poster-actions{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:18px;padding-right:18px}
+    .quote-poster-actions button{border:0;border-bottom:1px solid var(--orange);outline:0;background:transparent;padding:5px 0;color:var(--orange);font-size:12px}
+    .quote-poster-actions button:focus-visible{box-shadow:0 2px 0 var(--orange)}
 
     dialog{background:var(--cream)}
     .reader-hero{flex:0 0 auto;padding:18px 20px 14px;overflow:visible;background:transparent}
@@ -515,11 +483,14 @@ fs.writeFileSync(output, `<!doctype html>
       .month-takeaway{padding:8px 12px}
       .month-takeaway blockquote{font-size:13px;line-height:1.5}
       .tabs,.app-shell.calendar-mode .tabs{grid-template-columns:repeat(3,minmax(0,1fr))}
-      .quote-archive-intro h2{font-size:30px}
-      .quote-random-card{padding-right:13px;padding-left:13px}
-      .quote-random-card blockquote{font-size:18px}
-      .quote-group summary{grid-template-columns:30px minmax(0,1fr) auto;gap:7px}
-      .quote-group-title strong{font-size:14px}
+      .quote-poster{padding:18px 17px 16px}
+      .quote-poster:before{left:17px;right:17px;top:74px}
+      .quote-poster-head{padding-right:2px;padding-left:2px}
+      .quote-poster-head>div:first-child strong{font-size:17px}
+      .quote-poster-index b{font-size:25px}
+      .quote-poster-body{padding-right:2px;padding-left:2px}
+      .quote-poster-body blockquote{font-size:23px;line-height:1.68}
+      .quote-poster-foot{padding-right:2px;padding-left:2px}
       .content-card{grid-template-columns:32px minmax(0,1fr)}
       .reader-hero,.reader-body{padding-right:14px;padding-left:14px}
       .reader-title{font-size:22px}
@@ -558,14 +529,13 @@ ${quotePanel}
   </dialog>
   <script>
     const books=${payload}; const dialog=document.querySelector('#reader'); const prevPage=document.querySelector('#previous-page'); const nextPage=document.querySelector('#next-page'); let readerSections=[]; let readerBook=null; let sectionIndex=0;
-    const quotes=books.flatMap((book,bookIndex)=>book.quotes.map(text=>({text,source:book.title.replace(/^\\d{4}-\\d{2}-\\d{2}｜/, ''),bookIndex}))); let quoteIndex=Math.floor(Math.random()*Math.max(1,quotes.length)); let archiveQuoteIndex=quoteIndex;
+    const quotes=books.flatMap((book,bookIndex)=>book.quotes.map(text=>({text,source:book.title.replace(/^\\d{4}-\\d{2}-\\d{2}｜/, ''),author:book.author||book.category||'',bookIndex}))); let quoteIndex=Math.floor(Math.random()*Math.max(1,quotes.length)); let archiveQuoteIndex=quoteIndex;
     function showQuote(){const quote=quotes[quoteIndex];if(!quote)return;document.querySelector('#quote-text').textContent='“'+quote.text+'”';document.querySelector('#quote-source').textContent='—— '+quote.source;} showQuote();
     const refresh=document.querySelector('#refresh-quote'); if(refresh)refresh.onclick=()=>{quoteIndex=(quoteIndex+1+Math.floor(Math.random()*Math.max(1,quotes.length-1)))%quotes.length;showQuote();};
-    function showArchiveQuote(){const quote=quotes[archiveQuoteIndex];if(!quote)return;document.querySelector('#archive-quote-text').textContent='“'+quote.text+'”';document.querySelector('#archive-quote-source').textContent='—— '+quote.source;document.querySelector('#archive-open-source').dataset.openIndex=quote.bookIndex;} showArchiveQuote();
+    function showArchiveQuote(){const quote=quotes[archiveQuoteIndex];if(!quote)return;document.querySelector('#archive-quote-current').textContent=String(archiveQuoteIndex+1).padStart(2,'0');document.querySelector('#archive-quote-text').textContent='“'+quote.text+'”';document.querySelector('#archive-quote-source').textContent='—— '+quote.source;document.querySelector('#archive-quote-author').textContent=quote.author;document.querySelector('#archive-open-source').dataset.openIndex=quote.bookIndex;} showArchiveQuote();
     const archiveRefresh=document.querySelector('#archive-refresh-quote'); if(archiveRefresh)archiveRefresh.onclick=()=>{archiveQuoteIndex=(archiveQuoteIndex+1+Math.floor(Math.random()*Math.max(1,quotes.length-1)))%quotes.length;showArchiveQuote();};
     const appShell=document.querySelector('.app-shell');
     document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(item=>item.classList.remove('active'));document.querySelectorAll('.panel').forEach(panel=>{panel.hidden=true;panel.classList.remove('active-panel')});tab.classList.add('active');appShell.classList.toggle('calendar-mode',tab.dataset.tab!=='today-panel');const panel=document.querySelector('#'+tab.dataset.tab);panel.hidden=false;panel.classList.add('active-panel');}));
-    const quoteGroups=[...document.querySelectorAll('.quote-group')]; quoteGroups.forEach(group=>group.addEventListener('toggle',()=>{if(group.open)quoteGroups.forEach(other=>{if(other!==group)other.open=false})}));
     function splitIntoSections(html){const box=document.createElement('div');box.innerHTML=html;const sections=[];let current={title:'继续阅读',html:''};[...box.children].forEach(node=>{if(node.tagName==='H2'){if(current.html.trim())sections.push(current);current={title:node.textContent.trim(),html:''};}else{current.html+=node.outerHTML;}});if(current.html.trim())sections.push(current);return sections.length?sections:[{title:'继续阅读',html:html}];}
     function estimateMinutes(fromIndex){const rest=readerSections.slice(fromIndex).map(section=>section.html.replace(/<[^>]+>/g,'')).join('');return Math.max(1,Math.ceil(rest.length/420));}
     function renderReader(){const total=Math.max(1,readerSections.length);const current=readerSections[sectionIndex]||{title:'继续阅读',html:''};const percent=Math.round(((sectionIndex+1)/total)*100);document.querySelector('#reader-current').textContent=String(sectionIndex+1).padStart(2,'0');document.querySelector('#reader-total').textContent=String(total).padStart(2,'0');document.querySelector('#reader-percent').textContent=percent+'%';document.querySelector('#progress-fill').style.width=percent+'%';document.querySelector('#reader-time').textContent='还需 '+estimateMinutes(sectionIndex)+' 分钟';document.querySelector('#reader-kicker').textContent=sectionIndex===0?'今日精读':'继续阅读';document.querySelector('#reader-title').textContent=current.title;document.querySelector('#reader-bookline').textContent=(readerBook.title||'').replace(/^\\d{4}-\\d{2}-\\d{2}｜/,'')+(readerBook.author?' · '+readerBook.author:'');document.querySelector('#reader-page-content').innerHTML=current.html;document.querySelector('.content-card').dataset.section=String(sectionIndex+1).padStart(2,'0');document.querySelector('#reader-judgement').textContent='判断：'+(readerBook.review||readerBook.quotes?.[0]||'把这一段变成一个可以执行的判断。');prevPage.disabled=sectionIndex===0;nextPage.disabled=sectionIndex>=total-1;dialog.querySelector('.reader-body').scrollTop=0;}
