@@ -109,9 +109,9 @@
     .primary-cta .cta-takeaway{display:block;grid-column:1;grid-row:1;max-width:195px;text-align:left;font-size:12.5px;line-height:1.5}
     .primary-cta .icon{grid-column:3;color:var(--cream);font-size:22px}
 
-    .quote-box{position:relative;display:grid;grid-template-columns:56px minmax(0,1fr);grid-template-rows:auto 1fr auto;min-height:168px;margin-top:0;padding:0;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;background:transparent;box-shadow:none}
+    .quote-box{position:relative;display:grid;grid-template-columns:56px minmax(0,1fr);grid-template-rows:auto auto auto auto;min-height:168px;margin-top:0;padding:0;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;background:transparent;box-shadow:none}
     .quote-box:before{display:none}
-    .quote-count{display:flex;grid-column:1;grid-row:1 / 4;flex-direction:column;align-items:center;justify-content:center;gap:5px;border-right:1px solid var(--line)}
+    .quote-count{display:flex;grid-column:1;grid-row:1 / 5;flex-direction:column;align-items:center;justify-content:center;gap:5px;border-right:1px solid var(--line)}
     .quote-count b{color:var(--orange);font:500 34px/1 var(--serif)}
     .quote-count span{color:var(--muted);font:400 10px var(--serif)}
     .quote-meta{grid-column:2;padding:12px 16px 0;color:var(--orange);font-family:var(--serif);font-size:12px;font-weight:400;letter-spacing:.06em}
@@ -119,6 +119,8 @@
     .refresh-quote{color:var(--orange);border:0;border-radius:0;background:transparent;padding:3px 0;font-family:var(--serif);font-size:12px;font-weight:400}
     .quote-text{grid-column:2;margin:0;padding:14px 18px 8px 20px;font-size:17px;line-height:1.62;font-weight:500}
     .quote-text:after{display:none}
+    .quote-export-cta{grid-column:2;justify-self:start;margin:0 18px 12px 20px;border:1px solid var(--orange);border-radius:0;background:var(--orange);color:var(--cream);padding:8px 13px;font-family:var(--serif);font-size:12px;font-weight:400;letter-spacing:.04em}
+    .quote-export-cta:disabled{cursor:default;opacity:.56}
     .quote-source{grid-column:2;padding:0 18px 13px 20px;color:var(--muted);font-family:var(--serif);font-size:11px;font-weight:400}
 
     .monthly-reflection{display:grid;grid-template-columns:96px minmax(0,1fr);grid-template-rows:auto 1fr;min-height:185px;margin-top:16px;padding:0;border:1px solid var(--line);border-radius:0;background:transparent;box-shadow:none}
@@ -188,9 +190,11 @@
     .quote-poster-source{display:flex;flex-direction:column;gap:6px;min-width:0}
     .quote-poster-source span{font-size:14px;line-height:1.5;font-weight:500;overflow-wrap:anywhere}
     .quote-poster-source small{color:var(--muted);font-size:11px}
-    .quote-poster-actions{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:18px;padding-right:18px}
+    .quote-poster-actions{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px 18px;margin-top:18px;padding-right:18px}
     .quote-poster-actions button{border:0;border-bottom:1px solid var(--orange);outline:0;background:transparent;padding:5px 0;color:var(--orange);font-size:12px}
+    .quote-poster-actions button:disabled{cursor:default;opacity:.48}
     .quote-poster-actions button:focus-visible{box-shadow:0 2px 0 var(--orange)}
+    .poster-export-status{flex-basis:100%;min-height:16px;color:var(--muted);font-size:11px}
 
     dialog{background:var(--cream)}
     .reader-hero{flex:0 0 auto;padding:18px 20px 14px;overflow:visible;background:transparent}
@@ -246,11 +250,12 @@
       .feature-copy h2{font-size:21px}
       .primary-cta{min-height:48px;margin-top:-52px;margin-bottom:16px;padding:8px 12px}
       .primary-cta .cta-takeaway{max-width:150px;font-size:10.5px;line-height:1.45}
-      .quote-box{grid-template-columns:48px minmax(0,1fr);grid-template-rows:auto auto auto;min-height:0}
+      .quote-box{grid-template-columns:48px minmax(0,1fr);grid-template-rows:auto auto auto auto;min-height:0}
       .quote-count b{font-size:30px}
       .quote-meta{padding:10px 12px 0;font-size:11px}
       .refresh-quote{font-size:11px}
       .quote-text{padding:10px 14px 4px 16px;font-size:15.5px;line-height:1.52}
+      .quote-export-cta{margin:0 14px 10px 16px;padding:7px 11px;font-size:11px}
       .quote-source{padding:0 14px 11px 16px;font-size:10.5px}
       .monthly-reflection{grid-template-columns:72px minmax(0,1fr);grid-template-rows:auto auto;min-height:0;margin-top:12px}
       .month-heading{padding:10px}
@@ -301,6 +306,7 @@
       <div class="quote-count"><b>130</b><span>已收录</span></div>
       <div class="quote-meta"><span>金句回顾<span class="quote-meta-count"> · 已收录 130 句</span></span><button id="refresh-quote" class="refresh-quote" type="button">换一句 <span aria-hidden="true">↻</span></button></div>
       <div id="quote-text" class="quote-text"></div>
+      <button id="export-current-quote" class="quote-export-cta" type="button">导出为图片海报 <span aria-hidden="true">↓</span></button>
       <div id="quote-source" class="quote-source"></div>
     </section>
     <section class="monthly-reflection" aria-label="本月留下什么">
@@ -407,7 +413,7 @@
       <div class="quote-poster-body"><blockquote id="archive-quote-text"></blockquote></div>
       <footer class="quote-poster-foot">
         <div class="quote-poster-source"><span id="archive-quote-source"></span><small id="archive-quote-author"></small></div>
-        <div class="quote-poster-actions"><button id="archive-open-source" class="open-reader" type="button" data-open-index="0">读这本 <span aria-hidden="true">→</span></button><button id="archive-refresh-quote" type="button">换一句 <span aria-hidden="true">↻</span></button></div>
+        <div class="quote-poster-actions"><button id="archive-open-source" class="open-reader" type="button" data-open-index="0">读这本 <span aria-hidden="true">→</span></button><button id="archive-refresh-quote" type="button">换一句 <span aria-hidden="true">↻</span></button><button id="archive-export-poster" type="button">导出图片 <span aria-hidden="true">↓</span></button><small id="poster-export-status" class="poster-export-status" aria-live="polite"></small></div>
       </footer>
     </article>
   </section>
@@ -436,6 +442,23 @@
     function renderPosterQuote(text,highlight){const target=document.querySelector('#archive-quote-text');const index=highlight?text.lastIndexOf(highlight):-1;if(index<0){target.textContent='“'+text+'”';return;}const mark=document.createElement('mark');mark.textContent=highlight;target.replaceChildren(document.createTextNode('“'+text.slice(0,index)),mark,document.createTextNode(text.slice(index+highlight.length)+'”'));}
     function showArchiveQuote(){const quote=quotes[archiveQuoteIndex];if(!quote)return;document.querySelector('#archive-quote-current').textContent=String(archiveQuoteIndex+1).padStart(2,'0');renderPosterQuote(quote.text,quote.highlight);document.querySelector('#archive-quote-source').textContent='—— '+quote.source;document.querySelector('#archive-quote-author').textContent=quote.author;document.querySelector('#archive-open-source').dataset.openIndex=quote.bookIndex;} showArchiveQuote();
     const archiveRefresh=document.querySelector('#archive-refresh-quote'); if(archiveRefresh)archiveRefresh.onclick=()=>{archiveQuoteIndex=(archiveQuoteIndex+1+Math.floor(Math.random()*Math.max(1,quotes.length-1)))%quotes.length;showArchiveQuote();};
+    const posterSerif='"Songti SC","STSongti-SC-Regular","Noto Serif CJK SC","SimSun",serif';
+    const posterSans='"Avenir Next","Avenir","PingFang SC","Hiragino Sans GB",ui-sans-serif,system-ui,sans-serif';
+    const posterColors={cream:'#F8F3EF',orange:'#BE411C',ink:'#2E3030',muted:'#70777A',line:'#D9CEC4'};
+    function posterFont(weight,size,family){return weight+' '+size+'px '+family;}
+    function posterFileName(value){const chars=Array.from(String(value||'金句')).filter(char=>{const code=char.charCodeAt(0);return code>=48&&code<=57||code>=65&&code<=90||code>=97&&code<=122||code>=0x4e00&&code<=0x9fff;});return (chars.join('').slice(0,24)||'金句');}
+    function posterMeasure(ctx,part,size){ctx.font=posterFont(part.weight||500,size,posterSerif);return ctx.measureText(part.text).width;}
+    function wrapPosterChunks(ctx,chunks,maxWidth,size){const lines=[];let line={parts:[],width:0};chunks.forEach(chunk=>{Array.from(chunk.text||'').forEach(char=>{const part={text:char,color:chunk.color,weight:chunk.weight,highlight:chunk.highlight};const width=posterMeasure(ctx,part,size);if(line.parts.length&&line.width+width>maxWidth){lines.push(line);line={parts:[],width:0};}const previous=line.parts[line.parts.length-1];if(previous&&previous.color===part.color&&previous.weight===part.weight&&previous.highlight===part.highlight){previous.text+=char;previous.width+=width;}else{part.width=width;line.parts.push(part);}line.width+=width;});});if(line.parts.length)lines.push(line);return lines;}
+    function posterQuoteChunks(quote){const text=String(quote.text||'');const highlight=String(quote.highlight||'');const index=highlight?text.lastIndexOf(highlight):-1;if(index<0)return[{text:'“'+text+'”',color:posterColors.ink,weight:500}];return[{text:'“'+text.slice(0,index),color:posterColors.ink,weight:500},{text:highlight,color:posterColors.orange,weight:700,highlight:true},{text:text.slice(index+highlight.length)+'”',color:posterColors.ink,weight:500}].filter(part=>part.text);}
+    function drawPosterLines(ctx,lines,x,y,size,lineHeight){ctx.textBaseline='top';lines.forEach(line=>{let cursor=x;line.parts.forEach(part=>{ctx.font=posterFont(part.weight||500,size,posterSerif);if(part.highlight){ctx.fillStyle='rgba(190,65,28,.18)';ctx.fillRect(cursor,y+size*.82,part.width,size*.26);}ctx.fillStyle=part.color||posterColors.ink;ctx.fillText(part.text,cursor,y);cursor+=part.width;});y+=lineHeight;});}
+    function fitPosterQuote(ctx,chunks,maxWidth,maxHeight){let size=74;const length=chunks.reduce((total,part)=>total+Array.from(part.text||'').length,0);if(length>62)size=56;else if(length>46)size=62;else if(length>32)size=68;for(let current=size;current>=46;current-=2){const lineHeight=current*1.68;const lines=wrapPosterChunks(ctx,chunks,maxWidth,current);if(lines.length*lineHeight<=maxHeight)return{size:current,lineHeight,lines};}const lines=wrapPosterChunks(ctx,chunks,maxWidth,46);return{size:46,lineHeight:78,lines};}
+    function drawQuotePoster(canvas,quote,index,total){const ctx=canvas.getContext('2d');const width=1080,height=1920;canvas.width=width;canvas.height=height;ctx.fillStyle=posterColors.cream;ctx.fillRect(0,0,width,height);const halo=ctx.createRadialGradient(934,216,12,934,216,244);halo.addColorStop(0,'rgba(190,65,28,.13)');halo.addColorStop(1,'rgba(190,65,28,0)');ctx.fillStyle=halo;ctx.fillRect(680,0,400,470);ctx.strokeStyle=posterColors.line;ctx.lineWidth=2;ctx.strokeRect(64,64,width-128,height-128);ctx.fillStyle=posterColors.orange;ctx.fillRect(92,92,126,5);ctx.fillRect(92,92,5,126);ctx.fillRect(width-218,height-97,126,5);ctx.fillRect(width-97,height-218,5,126);ctx.textBaseline='top';ctx.font=posterFont(500,26,posterSans);ctx.fillStyle=posterColors.orange;ctx.fillText('QUOTE POSTER',118,124);ctx.font=posterFont(500,56,posterSerif);ctx.fillStyle=posterColors.ink;ctx.fillText('金句回顾',118,166);ctx.font=posterFont(500,76,posterSerif);ctx.fillStyle=posterColors.orange;ctx.textAlign='right';ctx.fillText(String(index+1).padStart(2,'0'),884,126);ctx.font=posterFont(400,30,posterSerif);ctx.fillStyle=posterColors.muted;ctx.fillText('/ '+String(total).padStart(2,'0'),962,170);ctx.textAlign='left';ctx.strokeStyle=posterColors.line;ctx.beginPath();ctx.moveTo(118,276);ctx.lineTo(width-118,276);ctx.stroke();ctx.font=posterFont(500,210,posterSerif);ctx.fillStyle='rgba(190,65,28,.14)';ctx.fillText('“',100,344);const quoteFit=fitPosterQuote(ctx,posterQuoteChunks(quote),840,820);const quoteHeight=quoteFit.lines.length*quoteFit.lineHeight;const quoteY=382+Math.max(0,(820-quoteHeight)/2);drawPosterLines(ctx,quoteFit.lines,118,quoteY,quoteFit.size,quoteFit.lineHeight);ctx.fillStyle=posterColors.orange;ctx.fillRect(118,quoteY+quoteHeight+34,74,5);ctx.strokeStyle=posterColors.line;ctx.beginPath();ctx.moveTo(118,1450);ctx.lineTo(width-118,1450);ctx.stroke();const source='—— '+(quote.source||'读到这里');const sourceLines=wrapPosterChunks(ctx,[{text:source,color:posterColors.ink,weight:500}],844,44).slice(0,2);drawPosterLines(ctx,sourceLines,118,1500,44,66);ctx.font=posterFont(400,32,posterSerif);ctx.fillStyle=posterColors.muted;ctx.fillText(quote.author||'每天一本值得精读的书',118,1644);ctx.font=posterFont(500,34,posterSans);ctx.fillStyle=posterColors.orange;ctx.fillText('BUKU',118,1756);ctx.font=posterFont(400,30,posterSerif);ctx.fillStyle=posterColors.muted;ctx.fillText('读到这里 · 每天一本值得精读的书',118,1806);}
+    function downloadPosterCanvas(canvas,quote,index){return new Promise((resolve,reject)=>{const save=blob=>{const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='金句海报-'+String(index+1).padStart(2,'0')+'-'+posterFileName(quote.source)+'.png';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),12000);resolve();};if(canvas.toBlob){canvas.toBlob(blob=>blob?save(blob):reject(new Error('poster export failed')),'image/png');}else{const link=document.createElement('a');link.href=canvas.toDataURL('image/png');link.download='金句海报-'+String(index+1).padStart(2,'0')+'-'+posterFileName(quote.source)+'.png';document.body.appendChild(link);link.click();link.remove();resolve();}});}
+    async function exportQuotePosterAt(index,button,status){const quote=quotes[index];if(!button||!quote)return;const readyHtml=button.dataset.readyHtml||button.innerHTML;button.dataset.readyHtml=readyHtml;try{button.disabled=true;button.textContent='正在导出...';if(status)status.textContent='正在生成图片';if(document.fonts&&document.fonts.ready)await document.fonts.ready;const canvas=document.createElement('canvas');drawQuotePoster(canvas,quote,index,quotes.length);await downloadPosterCanvas(canvas,quote,index);if(status)status.textContent='已导出 PNG 图片';}catch(error){console.error(error);if(status)status.textContent='导出失败，请再试一次';}finally{button.disabled=false;button.innerHTML=readyHtml;}}
+    async function exportArchivePoster(){await exportQuotePosterAt(archiveQuoteIndex,document.querySelector('#archive-export-poster'),document.querySelector('#poster-export-status'));}
+    async function exportCurrentQuote(){await exportQuotePosterAt(quoteIndex,document.querySelector('#export-current-quote'),null);}
+    const archiveExport=document.querySelector('#archive-export-poster'); if(archiveExport)archiveExport.onclick=exportArchivePoster;
+    const currentExport=document.querySelector('#export-current-quote'); if(currentExport)currentExport.onclick=exportCurrentQuote;
     const appShell=document.querySelector('.app-shell');
     document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(item=>item.classList.remove('active'));document.querySelectorAll('.panel').forEach(panel=>{panel.hidden=true;panel.classList.remove('active-panel')});tab.classList.add('active');appShell.classList.toggle('calendar-mode',tab.dataset.tab!=='today-panel');const panel=document.querySelector('#'+tab.dataset.tab);panel.hidden=false;panel.classList.add('active-panel');}));
     function splitIntoSections(html){const box=document.createElement('div');box.innerHTML=html;const sections=[];let current={title:'继续阅读',html:''};[...box.children].forEach(node=>{if(node.tagName==='H2'){if(current.html.trim())sections.push(current);current={title:node.textContent.trim(),html:''};}else{current.html+=node.outerHTML;}});if(current.html.trim())sections.push(current);return sections.length?sections:[{title:'继续阅读',html:html}];}
