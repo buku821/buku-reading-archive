@@ -239,7 +239,6 @@ const featureCard = latest ? `
       <div class="quote-count"><b>${quoteCount}</b><span>已收录</span></div>
       <div class="quote-meta"><span>金句回顾<span class="quote-meta-count"> · 已收录 ${quoteCount} 句</span></span><button id="refresh-quote" class="refresh-quote" type="button">换一句 <span aria-hidden="true">↻</span></button></div>
       <div id="quote-text" class="quote-text"></div>
-      <button id="export-current-quote" class="quote-export-cta" type="button">导出为图片海报 <span aria-hidden="true">↓</span></button>
       <div id="quote-source" class="quote-source"></div>
     </section>
     <section class="monthly-reflection" aria-label="本月留下什么">
@@ -413,8 +412,6 @@ fs.writeFileSync(output, `<!doctype html>
     .refresh-quote{color:var(--orange);border:0;border-radius:0;background:transparent;padding:3px 0;font-family:var(--serif);font-size:12px;font-weight:400}
     .quote-text{grid-column:2;margin:0;padding:14px 18px 8px 20px;font-size:17px;line-height:1.62;font-weight:500}
     .quote-text:after{display:none}
-    .quote-export-cta{grid-column:2;justify-self:start;margin:0 18px 12px 20px;border:1px solid var(--orange);border-radius:0;background:var(--orange);color:var(--cream);padding:8px 13px;font-family:var(--serif);font-size:12px;font-weight:400;letter-spacing:.04em}
-    .quote-export-cta:disabled{cursor:default;opacity:.56}
     .quote-source{grid-column:2;padding:0 18px 13px 20px;color:var(--muted);font-family:var(--serif);font-size:11px;font-weight:400}
 
     .monthly-reflection{display:grid;grid-template-columns:96px minmax(0,1fr);grid-template-rows:auto 1fr;min-height:185px;margin-top:16px;padding:0;border:1px solid var(--line);border-radius:0;background:transparent;box-shadow:none}
@@ -549,7 +546,6 @@ fs.writeFileSync(output, `<!doctype html>
       .quote-meta{padding:10px 12px 0;font-size:11px}
       .refresh-quote{font-size:11px}
       .quote-text{padding:10px 14px 4px 16px;font-size:15.5px;line-height:1.52}
-      .quote-export-cta{margin:0 14px 10px 16px;padding:7px 11px;font-size:11px}
       .quote-source{padding:0 14px 11px 16px;font-size:10.5px}
       .monthly-reflection{grid-template-columns:72px minmax(0,1fr);grid-template-rows:auto auto;min-height:0;margin-top:12px}
       .month-heading{padding:10px}
@@ -625,9 +621,7 @@ ${quotePanel}
     function downloadPosterCanvas(canvas,quote,index){return new Promise((resolve,reject)=>{const save=blob=>{const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='金句海报-'+String(index+1).padStart(2,'0')+'-'+posterFileName(quote.source)+'.png';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),12000);resolve();};if(canvas.toBlob){canvas.toBlob(blob=>blob?save(blob):reject(new Error('poster export failed')),'image/png');}else{const link=document.createElement('a');link.href=canvas.toDataURL('image/png');link.download='金句海报-'+String(index+1).padStart(2,'0')+'-'+posterFileName(quote.source)+'.png';document.body.appendChild(link);link.click();link.remove();resolve();}});}
     async function exportQuotePosterAt(index,button,status){const quote=quotes[index];if(!button||!quote)return;const readyHtml=button.dataset.readyHtml||button.innerHTML;button.dataset.readyHtml=readyHtml;try{button.disabled=true;button.textContent='正在导出...';if(status)status.textContent='正在生成图片';if(document.fonts&&document.fonts.ready)await document.fonts.ready;const canvas=document.createElement('canvas');drawQuotePoster(canvas,quote,index,quotes.length);await downloadPosterCanvas(canvas,quote,index);if(status)status.textContent='已导出 PNG 图片';}catch(error){console.error(error);if(status)status.textContent='导出失败，请再试一次';}finally{button.disabled=false;button.innerHTML=readyHtml;}}
     async function exportArchivePoster(){await exportQuotePosterAt(archiveQuoteIndex,document.querySelector('#archive-export-poster'),document.querySelector('#poster-export-status'));}
-    async function exportCurrentQuote(){await exportQuotePosterAt(quoteIndex,document.querySelector('#export-current-quote'),null);}
     const archiveExport=document.querySelector('#archive-export-poster'); if(archiveExport)archiveExport.onclick=exportArchivePoster;
-    const currentExport=document.querySelector('#export-current-quote'); if(currentExport)currentExport.onclick=exportCurrentQuote;
     const appShell=document.querySelector('.app-shell');
     document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(item=>item.classList.remove('active'));document.querySelectorAll('.panel').forEach(panel=>{panel.hidden=true;panel.classList.remove('active-panel')});tab.classList.add('active');appShell.classList.toggle('calendar-mode',tab.dataset.tab!=='today-panel');const panel=document.querySelector('#'+tab.dataset.tab);panel.hidden=false;panel.classList.add('active-panel');}));
     function splitIntoSections(html){const box=document.createElement('div');box.innerHTML=html;const sections=[];let current={title:'继续阅读',html:''};[...box.children].forEach(node=>{if(node.tagName==='H2'){if(current.html.trim())sections.push(current);current={title:node.textContent.trim(),html:''};}else{current.html+=node.outerHTML;}});if(current.html.trim())sections.push(current);return sections.length?sections:[{title:'继续阅读',html:html}];}
